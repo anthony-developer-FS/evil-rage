@@ -6,6 +6,7 @@ Usage: python3 tools/make_themes.py   (needs numpy)
 For every theme in THEMES it writes:
   art/themes/<name>/backdrop.png  the painted room background, 320x180
   art/themes/<name>/tiles.png     32x16: row 0 is four top-surface tiles, row 1 four fill tiles
+  art/themes/<name>/door.png      12x16 exit door, with a see-through background
 
 Each image is painted pixel by pixel with numpy. They are PNGs rather than SVGs like
 the explorer sheet because dithered backdrops would be megabytes of rectangles;
@@ -873,6 +874,262 @@ def observatory_tile(top, v):
     return t
 
 
+# --- doors ------------------------------------------------------------------
+# Each world's exit door, 12x16 like the goal's hit box, drawn as pixel rows.
+# "." is see-through and "#" is the shaded inside of the frame. Every door keeps
+# the same green glow in its opening ("g", with a bright "G" stripe) so the way
+# out reads as the way out in any world, and decoy goals draw the same picture,
+# so they still pass for the real thing.
+
+DOOR_W, DOOR_H = 12, 16
+GLOW = {"g": "#4ad97a", "G": "#9af0b4"}
+
+DOORS = {
+    # A log frame wrapped in vines.
+    "jungle": ({"#": "#2c1a10", "L": "#3f8a35", "l": "#6cc04e", "W": "#6e4a30", "w": "#43291a"}, [
+        ".lLl..LllL..",
+        "lLLLLlLLLLLl",
+        "WWWLWWWWLWWW",
+        "WwwwwwwwwwwW",
+        "Ww#gggggg#wW",
+        "Lw#ggGGgg#wW",
+        "WL#ggGGgg#wW",
+        "Ww#ggGGgg#LW",
+        "Ww#ggGGgg#wL",
+        "Lw#ggGGgg#wW",
+        "Ww#ggGGgg#wW",
+        "WL#ggGGgg#wW",
+        "Ww#ggGGgg#wW",
+        "Ww#ggGGgg#LW",
+        "lw#ggGGgg#wl",
+        "lL#ggGGgg#Ll",
+    ]),
+    # A rough stone arch with crystals growing out of it.
+    "cave": ({"#": "#2a2440", "S": "#625688", "s": "#3a3254", "H": "#8a7eb4", "C": "#c890ff", "c": "#f0d0ff"}, [
+        "...SSHHSS...",
+        "..SHSSSSSHS.",
+        ".SSssCcssSS.",
+        "SSsggggggsSS",
+        "Ss#ggGGgg#sS",
+        "Cs#ggGGgg#sS",
+        "Sc#ggGGgg#sS",
+        "Ss#ggGGgg#sH",
+        "Hs#ggGGgg#sS",
+        "Ss#ggGGgg#cS",
+        "Ss#ggGGgg#sC",
+        "Ss#ggGGgg#sS",
+        "Cs#ggGGgg#sS",
+        "Sc#ggGGgg#sS",
+        "SS#ggGGgg#SS",
+        "CS#ggGGgg#SC",
+    ]),
+    # Sandstone pillars under a lintel with a carved eye.
+    "temple": ({"#": "#6a4c2e", "T": "#bc9460", "t": "#8a6640", "A": "#d8b078", "E": "#3ab0a0"}, [
+        "AAAAAAAAAAAA",
+        "TTTtAEEAtTTT",
+        "tttttttttttt",
+        "TA#gggggg#AT",
+        "TA#ggGGgg#AT",
+        "tA#ggGGgg#At",
+        "TA#ggGGgg#AT",
+        "tA#ggGGgg#At",
+        "TA#ggGGgg#AT",
+        "tA#ggGGgg#At",
+        "TA#ggGGgg#AT",
+        "tA#ggGGgg#At",
+        "TA#ggGGgg#AT",
+        "tA#ggGGgg#At",
+        "TT#ggGGgg#TT",
+        "AA#ggGGgg#AA",
+    ]),
+    # A stone arch with its portcullis raised.
+    "castle": ({"#": "#3a3e50", "K": "#8e94ac", "k": "#666c84", "M": "#474b60", "B": "#2a2a33"}, [
+        "...KKKKKK...",
+        ".KKkKKKKkKK.",
+        "KkBBBBBBBBkK",
+        "KKBgBggBgBKK",
+        "Kk#ggGGgg#kK",
+        "kM#ggGGgg#Mk",
+        "Kk#ggGGgg#kK",
+        "kM#ggGGgg#Mk",
+        "Kk#ggGGgg#kK",
+        "kM#ggGGgg#Mk",
+        "Kk#ggGGgg#kK",
+        "kM#ggGGgg#Mk",
+        "Kk#ggGGgg#kK",
+        "kM#ggGGgg#Mk",
+        "Kk#ggGGgg#kK",
+        "KK#ggGGgg#KK",
+    ]),
+    # A timbered shaft mouth with a lantern on a hook.
+    "mine": ({"#": "#3a2414", "P": "#8a6038", "p": "#b08050", "d": "#5a3a20", "O": "#ffb040", "o": "#c07020"}, [
+        "pppppppppppp",
+        "PPPPdPPPPdPP",
+        "dddddddddddd",
+        "Pp#ggGdgg#pP",
+        "Pp#ggOOgg#pP",
+        "Pd#ggooGg#pP",
+        "Pp#ggGGgg#pP",
+        "Pp#ggGGgg#dP",
+        "Pp#ggGGgg#pP",
+        "Pd#ggGGgg#pP",
+        "Pp#ggGGgg#pP",
+        "Pp#ggGGgg#pP",
+        "Pp#ggGGgg#dP",
+        "Pp#ggGGgg#pP",
+        "Pd#ggGGgg#pP",
+        "Pp#ggGGgg#pP",
+    ]),
+    # Marble columns with a cloud resting on top.
+    "sky": ({"#": "#8e8a80", "M": "#f0ece0", "m": "#c8c4b8", "n": "#a8a498", "U": "#ffffff", "u": "#d8e4f0"}, [
+        "..uUUuuUUu..",
+        ".uUUUUUUUUu.",
+        "MMMMMMMMMMMM",
+        "mnnnnnnnnnnm",
+        "Mm#gggggg#mM",
+        "Mn#ggGGgg#nM",
+        "Mm#ggGGgg#mM",
+        "Mn#ggGGgg#nM",
+        "Mm#ggGGgg#mM",
+        "Mn#ggGGgg#nM",
+        "Mm#ggGGgg#mM",
+        "Mn#ggGGgg#nM",
+        "Mm#ggGGgg#mM",
+        "Mn#ggGGgg#nM",
+        "MM#ggGGgg#MM",
+        "mm#ggGGgg#mm",
+    ]),
+    # A silver mirror frame.
+    "mirror": ({"#": "#2e5a88", "A": "#c8f0ff", "a": "#8ac8f0", "F": "#5a8aba", "X": "#ffffff"}, [
+        "...aAAAAa...",
+        "..aAFFFFAa..",
+        ".aAgggXgg#Aa",
+        "aA#gggggg#Aa",
+        "aA#ggGGgg#Aa",
+        "XA#ggGGgg#Aa",
+        "aA#ggGGgg#Aa",
+        "aA#ggGGgg#AX",
+        "aA#ggGGgg#Aa",
+        "aA#ggGGgg#Aa",
+        "XA#ggGGgg#Aa",
+        "aA#ggGGgg#Aa",
+        "aA#ggGGgg#AX",
+        "aA#ggGGgg#Aa",
+        "AF#ggGGgg#FA",
+        "aA#ggGGgg#Aa",
+    ]),
+    # Dark violet stone crowned with a crystal. Often hung upside down.
+    "spire": ({"#": "#1e1430", "Q": "#8a6ac8", "q": "#5a4490", "z": "#2e2048", "Y": "#c890ff", "y": "#f0d0ff"}, [
+        ".....yY.....",
+        "....YyYY....",
+        "qQQQQYYQQQQq",
+        "QzzzzzzzzzzQ",
+        "Qq#gggggg#qQ",
+        "Qq#ggGGgg#qQ",
+        "Qz#ggGGgg#qQ",
+        "Qq#ggGGgg#zQ",
+        "Qq#ggGGgg#qQ",
+        "Qq#ggGGgg#qQ",
+        "Qz#ggGGgg#qQ",
+        "Qq#ggGGgg#zQ",
+        "Qq#ggGGgg#qQ",
+        "Qq#ggGGgg#qQ",
+        "Qz#ggGGgg#zQ",
+        "Qq#ggGGgg#qQ",
+    ]),
+    # A sandstone arch half buried by a drift.
+    "dunes": ({"#": "#8a5e36", "D": "#d8a46a", "e": "#a87444", "E": "#e8c084", "N": "#e8c890", "n": "#f8e0a8"}, [
+        "...EEEEEE...",
+        ".EDDDDDDDDE.",
+        "EDDeggggeDDE",
+        "DDeggggggeDD",
+        "De#ggGGgg#eD",
+        "De#ggGGgg#eD",
+        "Ee#ggGGgg#eD",
+        "De#ggGGgg#eE",
+        "De#ggGGgg#eD",
+        "De#ggGGgg#eD",
+        "Ee#ggGGgg#eD",
+        "De#ggGGgg#eD",
+        "De#ggGGgg#eE",
+        "nD#ggGGgg#Dn",
+        "NNnggGGggnNN",
+        "NNNNgGGgNNNN",
+    ]),
+    # An arch of ice with icicles hanging into it.
+    "frost": ({"#": "#3a6a98", "I": "#a8d8f8", "i": "#5a8ab8", "J": "#f0f8ff", "j": "#3a6a98"}, [
+        "..JJJJJJJJ..",
+        ".JIIIIIIIIJ.",
+        "JIiIiiiiIiIJ",
+        "Ii#JgggJg#iI",
+        "Ii#JgGGgg#iI",
+        "Ji#ggGGgg#iJ",
+        "Ii#ggGGgg#jI",
+        "Ij#ggGGgg#iI",
+        "Ji#ggGGgg#iJ",
+        "Ii#ggGGgg#iI",
+        "Ii#ggGGgg#jI",
+        "Jj#ggGGgg#iJ",
+        "Ii#ggGGgg#iI",
+        "Ii#ggGGgg#iI",
+        "Ji#ggGGgg#iJ",
+        "JJ#ggGGgg#JJ",
+    ]),
+    # A riveted brass vault frame with a gear hub on top.
+    "clockwork": ({"#": "#3a2a14", "B": "#e8c070", "b": "#b08848", "k": "#4a3418", "r": "#f8e0a0"}, [
+        "..bBBBBBBb..",
+        ".bBrBkkBrBb.",
+        "bBkkkkkkkkBb",
+        "BbkggggggkbB",
+        "Br#ggGGgg#rB",
+        "Bb#ggGGgg#bB",
+        "Bb#ggGGgg#bB",
+        "Br#ggGGgg#rB",
+        "Bb#ggGGgg#bB",
+        "Bb#ggGGgg#bB",
+        "Br#ggGGgg#rB",
+        "Bb#ggGGgg#bB",
+        "Bb#ggGGgg#bB",
+        "Br#ggGGgg#rB",
+        "Bb#ggGGgg#bB",
+        "bb#ggGGgg#bb",
+    ]),
+    # A marble arch set with brass stars.
+    "observatory": ({"#": "#3a3a54", "V": "#b8b8d8", "v": "#8a8aac", "w": "#5a5a7a", "S": "#e0c060"}, [
+        "....vVVv....",
+        "..vVwSwwVv..",
+        ".vVwwwwSwwVv",
+        "vVwggggggwVv",
+        "Vw#ggGGgg#wV",
+        "Vw#ggGGgg#wV",
+        "Sw#ggGGgg#wV",
+        "Vw#ggGGgg#wV",
+        "Vw#ggGGgg#wV",
+        "Vw#ggGGgg#wS",
+        "Vw#ggGGgg#wV",
+        "Vw#ggGGgg#wV",
+        "Sw#ggGGgg#wV",
+        "Vw#ggGGgg#wV",
+        "Vw#ggGGgg#wV",
+        "VV#ggGGgg#VV",
+    ]),
+}
+
+
+def door(name):
+    """RGBA picture of a world's door, from its rows in DOORS."""
+    palette, rows = DOORS[name]
+    palette = {**GLOW, **palette}
+    assert len(rows) == DOOR_H and all(len(r) == DOOR_W for r in rows), name
+    img = np.zeros((DOOR_H, DOOR_W, 4), dtype=np.uint8)
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch != ".":
+                img[y, x, :3] = hexc(palette[ch])
+                img[y, x, 3] = 255
+    return img
+
+
 THEMES = {
     "jungle": (jungle_backdrop, jungle_tile),
     "cave": (cave_backdrop, cave_tile),
@@ -892,14 +1149,14 @@ THEMES = {
 # --- output -----------------------------------------------------------------
 
 def write_png(path, img):
-    """Plain RGB PNG, written with zlib so the tool needs nothing beyond numpy."""
-    h, w, _ = img.shape
+    """Plain RGB or RGBA PNG, written with zlib so the tool needs nothing beyond numpy."""
+    h, w, channels = img.shape
     raw = b"".join(b"\x00" + img[y].tobytes() for y in range(h))
 
     def chunk(kind, data):
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
 
-    path.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+    path.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 6 if channels == 4 else 2, 0, 0, 0))
                      + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
@@ -917,7 +1174,8 @@ def main():
         out.mkdir(parents=True, exist_ok=True)
         write_png(out / "backdrop.png", backdrop())
         write_png(out / "tiles.png", tile_sheet(tile))
-        print(f"wrote art/themes/{name}/backdrop.png and tiles.png")
+        write_png(out / "door.png", door(name))
+        print(f"wrote art/themes/{name}/backdrop.png, tiles.png and door.png")
 
 
 if __name__ == "__main__":

@@ -1,9 +1,10 @@
 @tool
 class_name WorldTheme
 extends Resource
-## The look of one explorer world: backdrop, block tiles, spike color and the
-## little things that drift around. Set a room's `world_theme` and its blocks,
-## spikes, backdrop and title pick it up. The art comes from tools/make_themes.py.
+## The look of one explorer world: backdrop, block tiles, exit door, spike color
+## and the little things that drift around. Set a room's `world_theme` and its
+## blocks, spikes, doors, backdrop and title pick it up. The art comes from
+## tools/make_themes.py.
 
 enum Ambient { NONE, FIREFLIES, DRIPS, DUST, EMBERS, WIND, SPARKLES, SNOW }
 
@@ -13,6 +14,8 @@ enum Ambient { NONE, FIREFLIES, DRIPS, DUST, EMBERS, WIND, SPARKLES, SNOW }
 @export var backdrop: Texture2D
 ## 32x16 sheet of 8x8 tiles: top row is block surfaces, bottom row is fill.
 @export var tiles: Texture2D
+## 12x16 exit door, standing on its bottom edge. Goals and decoy goals draw it.
+@export var door: Texture2D
 @export var spike_color := Color("d94a4a")
 @export var title_color := Color(0.5, 0.5, 0.6)
 @export var ambient := Ambient.NONE

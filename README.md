@@ -43,9 +43,9 @@ The world is drawn into a 320x180 viewport and scaled up by whole numbers, so pi
 | `scenes/rooms/room_46.tscn` to `room_50.tscn` | The Frozen Depths: frost that covers the floor but one square, then chases you out |
 | `scenes/rooms/room_51.tscn` to `room_55.tscn` | The Clockwork Vault: blocks that burst out of the floor or thin air and shove you off ledges |
 | `scenes/rooms/room_56.tscn` to `room_60.tscn` | The Moon Observatory: moon boots that jump to the ceiling, and spikes on the ceiling |
-| `scripts/world_theme.gd`, `resources/themes/` | One theme resource per world: backdrop, tiles, spike and title colors, ambient motes |
+| `scripts/world_theme.gd`, `resources/themes/` | One theme resource per world: backdrop, tiles, exit door, spike and title colors, ambient motes |
 | `scripts/backdrop.gd` | Draws the room's backdrop and its fireflies, drips, dust or embers |
-| `tools/make_themes.py` | Paints every world's backdrop and tile sheet into `art/themes/`. Edit and rerun it to change the art |
+| `tools/make_themes.py` | Paints every world's backdrop, tile sheet and exit door into `art/themes/`. Edit and rerun it to change the art |
 | `tools/room_shots.tscn` | Saves a screenshot of each room, for checking art without playing |
 | `scenes/rooms/test_room.tscn` | Movement sandbox |
 | `tests/` | Headless tests for movement, traps and level beatability |
@@ -61,7 +61,7 @@ Drop a trap scene into a room and set its `size` in the inspector. In the editor
 | Runaway goal | The exit hops to the next point when approached | `flee_points`, `flee_radius` |
 | Invisible block | Appears when hit from below and bonks the player | none |
 | Falling ceiling | Drops when the player walks under, crushes, then becomes a block | `trigger_depth`, `gravity` |
-| Decoy goal | Looks exactly like the exit, kills on touch | none |
+| Decoy goal | Looks exactly like the exit, including the world's door, and kills on touch | none |
 | Dart trap | A carved face in a wall. Fires darts along `direction` when the trigger is entered; darts break on blocks | `trigger`, `direction`, `count`, `interval`, `delay`, `speed` |
 | Fake wall | Looks like a block but is not solid: a secret passage. Fades a little while the player is inside | none |
 | Moving wall | A block that slides by `travel`. With a `trigger` it moves once (walls closing in, floors pulling away); with `loop` it shuttles forever (lifts, presses). Riders are carried; anyone caught inside it is crushed | `travel`, `duration`, `trigger`, `delay`, `loop`, `pause`, `home_pause`, `spikes` |

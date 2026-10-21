@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="WorldTheme" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="WorldTheme" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_theme.gd" id="1"]
 [ext_resource type="Texture2D" path="res://art/themes/temple/backdrop.png" id="2"]
 [ext_resource type="Texture2D" path="res://art/themes/temple/tiles.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/themes/temple/door.png" id="4"]
 
 [resource]
 script = ExtResource("1")
 display_name = "The Temple"
 backdrop = ExtResource("2")
 tiles = ExtResource("3")
+door = ExtResource("4")
 spike_color = Color(0.86, 0.3, 0.24, 1)
 title_color = Color(0.85, 0.72, 0.5, 1)
 ambient = 3
