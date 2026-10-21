@@ -7,19 +7,29 @@ const RESPAWN_DELAY := 0.25
 
 const HUD := preload("res://scenes/objects/hud.tscn")
 
+## The explorer world this room belongs to. Blocks, spikes, the backdrop and the
+## title all take their look from it. Leave empty for the plain grey look.
+@export var world_theme: WorldTheme
+
 @onready var player: Player = $Player
 
 
 func _ready() -> void:
 	# Run on its own from the editor (F6), a room brings its own HUD. Under
 	# main.tscn the HUD lives outside the pixel viewport so text stays sharp.
+	if has_node("Title") and world_theme:
+		$Title.add_theme_color_override("font_color", world_theme.title_color)
 	if Game.world == null and get_tree().current_scene == self:
 		add_child(HUD.instantiate())
 	elif has_node("Title"):
 		# Under main.tscn the HUD shows the room title in sharp text instead.
 		$Title.hide()
-		Game.show_title($Title.text)
+		var title: String = $Title.text
+		if world_theme:
+			title = "%s · %s" % [world_theme.display_name, title]
+		Game.show_title(title, $Title.get_theme_color("font_color"))
 	Game.enter_room(scene_file_path)
+	Game.enter_world(world_theme)
 	player.global_position = $Spawn.global_position
 	player.died.connect(_on_player_died)
 	$Goal.reached.connect(_on_goal_reached)

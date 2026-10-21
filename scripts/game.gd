@@ -3,8 +3,9 @@ extends Node
 
 signal deaths_changed(total: int, in_room: int)
 signal taunted(line: String)
-signal banner_shown(text: String)
-signal title_shown(text: String)
+## seconds > 0 hides the banner again after that long.
+signal banner_shown(text: String, seconds: float)
+signal title_shown(text: String, color: Color)
 
 const TAUNTS := [
 	"Skill issue.",
@@ -24,6 +25,7 @@ var total_deaths := 0
 var room_deaths := 0
 var last_taunt := ""
 var _room_path := ""
+var _world_theme: WorldTheme
 ## The 320x180 SubViewport that rooms render into, set by main.gd. Null when a room
 ## is run on its own from the editor; then rooms load as the current scene instead.
 var world: SubViewport
@@ -63,12 +65,12 @@ func go_to_room(path: String) -> void:
 		get_tree().call_deferred("change_scene_to_file", path)
 
 
-func show_banner(text: String) -> void:
-	banner_shown.emit(text)
+func show_banner(text: String, seconds := 0.0) -> void:
+	banner_shown.emit(text, seconds)
 
 
-func show_title(text: String) -> void:
-	title_shown.emit(text)
+func show_title(text: String, color := Color(0.5, 0.5, 0.6)) -> void:
+	title_shown.emit(text, color)
 
 
 func _load_room(path: String) -> void:
@@ -85,6 +87,15 @@ func enter_room(path: String) -> void:
 		room_deaths = 0
 		last_taunt = ""
 	deaths_changed.emit(total_deaths, room_deaths)
+
+
+## Called by each room after enter_room. Crossing into a new world announces it.
+func enter_world(theme: WorldTheme) -> void:
+	if theme == _world_theme:
+		return
+	_world_theme = theme
+	if theme:
+		show_banner(theme.display_name, 2.5)
 
 
 func _pick_taunt() -> String:

@@ -1,0 +1,76 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/castle.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/spring.tscn" id="spring"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/fake_wall.tscn" id="fakewall"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/dart_trap.tscn" id="dart"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/decoy_goal.tscn" id="decoy"]
+
+[node name="Room20" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "20. The keep"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 244)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 244)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(320, 20)
+
+[node name="Spring" parent="." instance=ExtResource("spring")]
+position = Vector2(80, 156)
+power = 480.0
+
+[node name="Ledge" parent="." instance=ExtResource("block")]
+position = Vector2(0, 56)
+size = Vector2(64, 8)
+
+[node name="Chamber" parent="." instance=ExtResource("fakewall")]
+position = Vector2(0, 8)
+size = Vector2(48, 48)
+z_index = 1
+
+[node name="Throne" parent="." instance=ExtResource("block")]
+position = Vector2(264, 136)
+size = Vector2(56, 24)
+
+[node name="Face" parent="." instance=ExtResource("dart")]
+position = Vector2(263, 153)
+direction = Vector2(-1, 0)
+trigger = Rect2(-120, -14, 110, 14)
+speed = 200.0
+
+[node name="Exit" parent="." instance=ExtResource("decoy")]
+position = Vector2(296, 136)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(24, 56)
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

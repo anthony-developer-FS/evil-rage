@@ -1,6 +1,8 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/cave.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
 [ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
 [ext_resource type="PackedScene" path="res://scenes/trolls/fake_floor.tscn" id="fake"]
@@ -11,11 +13,10 @@
 
 [node name="Room12" type="Node2D"]
 script = ExtResource("room")
+world_theme = ExtResource("theme")
 
-[node name="Background" type="ColorRect" parent="."]
-offset_right = 320.0
-offset_bottom = 180.0
-color = Color(0.09, 0.09, 0.12, 1)
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
 
 [node name="Title" type="Label" parent="."]
 offset_left = 160.0
@@ -68,6 +69,7 @@ position = Vector2(24, 160)
 
 [node name="Goal" parent="." instance=ExtResource("runaway")]
 position = Vector2(290, 88)
+next_room = "res://scenes/rooms/room_13.tscn"
 flee_points = PackedVector2Array(310, 88)
 
 [node name="Player" parent="." instance=ExtResource("player")]

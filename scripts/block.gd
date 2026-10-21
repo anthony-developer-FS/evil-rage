@@ -1,7 +1,10 @@
 @tool
 class_name Block
 extends StaticBody2D
-## Placeholder solid. Set `size` in the inspector; collision and drawing follow.
+## Solid ground. Set `size` in the inspector; collision and drawing follow. In a
+## themed room it is drawn with the world's tiles, otherwise as a flat `color`.
+
+const TILE := 8
 
 @export var size := Vector2(16, 16):
 	set(value):
@@ -15,6 +18,13 @@ extends StaticBody2D
 
 func _ready() -> void:
 	_sync()
+	# Tiles line up with the room grid, so redraw while being dragged in the editor.
+	set_notify_transform(Engine.is_editor_hint())
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSFORM_CHANGED:
+		queue_redraw()
 
 
 func _sync() -> void:
@@ -30,4 +40,33 @@ func _sync() -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), color)
+	var theme := WorldTheme.of(self)
+	if theme == null or theme.tiles == null:
+		draw_rect(Rect2(Vector2.ZERO, size), color)
+		return
+	# Columns sit on a grid aligned to the room, not to the block, so neighbouring
+	# blocks (and the fake floors next to them) join without a seam. Rows start at
+	# the block's top so its surface tile is never cut off.
+	var origin := global_position.round()
+	var bounds := Rect2(Vector2.ZERO, size)
+	var y := 0.0
+	while y < size.y:
+		var x := -float(posmod(int(origin.x), TILE))
+		while x < size.x:
+			var cell := Rect2(x, y, TILE, TILE)
+			var shown := cell.intersection(bounds)
+			if shown.has_area():
+				var gx := int(origin.x + x + 1024) / TILE
+				var gy := int(origin.y + y + 1024) / TILE
+				var src := Rect2(_variant(gx, gy) * TILE, 0 if y == 0.0 else TILE, TILE, TILE)
+				src.position += shown.position - cell.position
+				src.size = shown.size
+				draw_texture_rect_region(theme.tiles, shown, src)
+			x += TILE
+		y += TILE
+
+
+## Which of the four tile variants a grid cell uses. Mostly the plain first one.
+static func _variant(gx: int, gy: int) -> int:
+	var h := absi(gx * 73856093 ^ gy * 19349663) % 16
+	return 0 if h < 9 else 1 + h % 3
