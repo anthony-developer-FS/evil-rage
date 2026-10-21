@@ -12,7 +12,9 @@ Controls: A/D or arrows to move, Space/K/Up to jump, R to restart, F11 or Alt+En
 
 ## Resolution
 
-The game is drawn at 320x180 and scaled up by whole numbers, so pixels stay sharp: 6x at 1080p, 8x at 1440p and 12x at 4K. It starts fullscreen at the monitor's native resolution. Windowed mode opens at 1280x720 and can be resized.
+The world is drawn into a 320x180 viewport and scaled up by whole numbers, so pixel art stays blocky and sharp: 6x at 1080p, 8x at 1440p and 12x at 4K. The HUD (death counter, taunts, room title) sits outside that viewport and is drawn at the screen's native resolution, so text stays crisp. The game starts fullscreen. Windowed mode opens at 1280x720 and can be resized.
+
+`scenes/main.tscn` is the entry point: it owns the world viewport and the HUD and loads rooms into the viewport. A room run on its own with F6 adds its own HUD, so rooms are still easy to test in the editor. Put text a player reads in the HUD, not in a room, or it will be pixelated.
 
 ## Layout
 
@@ -21,6 +23,7 @@ The game is drawn at 320x180 and scaled up by whole numbers, so pixels stay shar
 | `scripts/player.gd` | Kinematic controller: run, variable jump, coyote time, jump buffer, wall slide and wall jump |
 | `resources/default_tuning.tres` | Every movement number. Edit it in the inspector to retune feel |
 | `scripts/game.gd` | Autoload that keeps death counters and taunts across room reloads |
+| `scenes/main.tscn` | Entry point: 320x180 world viewport plus a native-resolution HUD |
 | `scripts/room.gd` | Base for every room: spawns the player, reloads the room on death |
 | `scenes/objects/` | Reusable pieces: player, block, hazard (spikes), goal, HUD |
 | `scenes/trolls/` | Troll traps, each a drop-in scene (see below) |

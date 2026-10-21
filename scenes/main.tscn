@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hud.tscn" id="2"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1")
+
+[node name="WorldView" type="SubViewportContainer" parent="."]
+texture_filter = 1
+offset_right = 320.0
+offset_bottom = 180.0
+
+[node name="World" type="SubViewport" parent="WorldView"]
+handle_input_locally = false
+snap_2d_transforms_to_pixel = true
+snap_2d_vertices_to_pixel = true
+canvas_item_default_texture_filter = 0
+size = Vector2i(320, 180)
+render_target_update_mode = 4
+
+[node name="Hud" parent="." instance=ExtResource("2")]

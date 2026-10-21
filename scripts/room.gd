@@ -5,16 +5,24 @@ extends Node2D
 ## Short freeze before the reload so the death registers visually. Keep it tiny.
 const RESPAWN_DELAY := 0.25
 
+const HUD := preload("res://scenes/objects/hud.tscn")
+
 @onready var player: Player = $Player
-@onready var hud: Hud = $Hud
 
 
 func _ready() -> void:
+	# Run on its own from the editor (F6), a room brings its own HUD. Under
+	# main.tscn the HUD lives outside the pixel viewport so text stays sharp.
+	if Game.world == null and get_tree().current_scene == self:
+		add_child(HUD.instantiate())
+	elif has_node("Title"):
+		# Under main.tscn the HUD shows the room title in sharp text instead.
+		$Title.hide()
+		Game.show_title($Title.text)
 	Game.enter_room(scene_file_path)
 	player.global_position = $Spawn.global_position
 	player.died.connect(_on_player_died)
 	$Goal.reached.connect(_on_goal_reached)
-	hud.show_taunt(Game.last_taunt)
 
 
 func _process(_delta: float) -> void:
@@ -32,4 +40,4 @@ func _on_player_died() -> void:
 func _on_goal_reached() -> void:
 	if $Goal.next_room == "":
 		player.set_physics_process(false)
-		hud.show_banner("You win. For now.")
+		Game.show_banner("You win. For now.")

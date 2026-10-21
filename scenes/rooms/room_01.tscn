@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/room.gd" id="room"]
 [ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
-[ext_resource type="PackedScene" path="res://scenes/objects/hud.tscn" id="hud"]
 [ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
 [ext_resource type="PackedScene" path="res://scenes/trolls/fake_floor.tscn" id="fake"]
 [ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
@@ -62,5 +61,3 @@ next_room = "res://scenes/rooms/room_02.tscn"
 
 [node name="Player" parent="." instance=ExtResource("player")]
 position = Vector2(24, 160)
-
-[node name="Hud" parent="." instance=ExtResource("hud")]
