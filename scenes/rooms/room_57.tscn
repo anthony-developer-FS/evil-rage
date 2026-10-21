@@ -62,10 +62,10 @@ pointing = Vector2(0, 1)
 
 [node name="CeilingLow" parent="." instance=ExtResource("block")]
 position = Vector2(112, -64)
-size = Vector2(208, 160)
+size = Vector2(208, 112)
 
 [node name="CeilingLowSpikes" parent="." instance=ExtResource("hazard")]
-position = Vector2(112, 96)
+position = Vector2(112, 48)
 size = Vector2(208, 8)
 pointing = Vector2(0, 1)
 

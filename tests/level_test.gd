@@ -322,9 +322,10 @@ var runs := {
 		"naive": [["right", 100], ["jump", 60], ["right", 400]],
 	},
 	"room_57": {
-		# Tap over the chest, tap over the pit.
-		"solve": [["right", 40], ["jump", 1], ["right", 128], ["jump", 4], ["right", 400]],
-		"naive": [["right", 128], ["jump", 4], ["right", 400]],
+		# Skip the chest, then any normal press clears the pit under the ceiling. With
+		# the spring boots on, only the quickest tap stays under the spikes.
+		"solve": [["right", 40], ["jump", 1], ["right", 120], ["jump", 16], ["right", 400]],
+		"naive": [["right", 120], ["jump", 12], ["right", 400]],
 	},
 	"room_58": {
 		"solve": [["right", 104], ["idle", 20], ["jump", 40], ["right", 140], ["right", 400]],
