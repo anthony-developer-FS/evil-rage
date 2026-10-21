@@ -319,6 +319,81 @@ def sfx_shield():
     return mix(ping, shatter) * 0.7
 
 
+def sfx_portal():
+    # Stepping through a rift: a warbling sweep up, then a soft pop out the far side.
+    gen = np.random.default_rng(2701)
+    d = 0.35
+    t = t_axis(d)
+    f = sweep(220, 1400, d, 1.6) * (1 + 0.06 * np.sin(2 * np.pi * 30 * t))
+    warble = mix(sine(f, d), triangle(f * 1.5, d) * 0.3) * env(d, 0.01, 1.0)
+    air = lowpass(noise(d, gen=gen), 2500) * env(d, 0.05, 1.5) * 0.25
+    pop = sine(sweep(900, 600, 0.06), 0.06) * env(0.06, 0.001, 2.0) * 0.5
+    return cat(mix(warble * 0.6, air), pop)
+
+
+def sfx_coin():
+    # The classic two-note coin: a short B, then a long ringing E.
+    a = square(987.8, 0.07, 0.5) * env(0.07, 0.001, 0.2)
+    b = square(1318.5, 0.35, 0.5) * env(0.35, 0.001, 2.2)
+    return lowpass(cat(a, b), 5000) * 0.4
+
+
+def sfx_fuse():
+    # A lit fuse spitting sparks.
+    gen = np.random.default_rng(2801)
+    d = 0.4
+    t = t_axis(d)
+    hiss = lowpass(noise(d, gen=gen), 7000) * (0.6 + 0.4 * (np.sin(2 * np.pi * 37 * t) > 0))
+    return hiss * env(d, 0.005, 0.6) * 0.45
+
+
+def sfx_explosion():
+    # A blast: a deep thump under a roar of noise that rumbles away.
+    gen = np.random.default_rng(2901)
+    d = 0.7
+    boom = sine(sweep(120, 35, d, 0.5), d) * env(d, 0.002, 2.5)
+    roar = lowpass(noise(d, hold=3, gen=gen), 1400) * env(d, 0.002, 1.8)
+    crack = lowpass(noise(0.04, gen=gen), 6000) * env(0.04, 0.001, 3.0)
+    return mix(boom, roar * 0.8, crack * 0.6)
+
+
+def sfx_reaper():
+    # Death rising: a low choir-ish drone that swells, with a bell toll on top.
+    d = 0.9
+    t = t_axis(d)
+    drone = sum(square(f * (1 + 0.004 * np.sin(2 * np.pi * 5 * t + i)), d, 0.4) * a
+                for i, (f, a) in enumerate([(73.4, 0.5), (110.0, 0.35), (155.6, 0.25)]))
+    swell = np.minimum(t / 0.5, 1.0) * env(d, 0.01, 0.8)
+    toll = mix(sine(220, d), sine(220 * 2.76, d) * 0.4, sine(220 * 5.4, d) * 0.2) * env(d, 0.002, 2.0)
+    return mix(lowpass(drone, 900) * swell * 0.7, toll * 0.5)
+
+
+def sfx_saw():
+    # A blade let loose: a whine that climbs, buzzing as it spins.
+    d = 0.4
+    t = t_axis(d)
+    f = sweep(500, 1600, d, 0.7)
+    buzz = square(f, d, 0.3) * (0.7 + 0.3 * np.sin(2 * np.pi * 60 * t))
+    return lowpass(buzz, 3500) * env(d, 0.01, 1.4) * 0.45
+
+
+def sfx_bullet():
+    # A cannon thump and a whoosh.
+    gen = np.random.default_rng(3001)
+    thump = sine(sweep(180, 50, 0.15), 0.15) * env(0.15, 0.002, 2.5)
+    puff = lowpass(noise(0.25, hold=2, gen=gen), 1500) * env(0.25, 0.005, 1.5) * 0.6
+    return mix(thump, puff)
+
+
+def sfx_ghost():
+    # A wavering "oooOOoo" sliding up and back down.
+    d = 0.6
+    t = t_axis(d)
+    f = 330 + 140 * np.sin(np.pi * t / d) + 12 * np.sin(2 * np.pi * 6 * t)
+    tone = mix(sine(f, d), sine(f * 2, d) * 0.15, triangle(f, d) * 0.2)
+    return tone * env(d, 0.12, 1.0) * 0.5
+
+
 def sfx_taunt():
     # Two-note "nyah nyah" played when a taunt appears. Quiet, it sits under the death.
     parts = []

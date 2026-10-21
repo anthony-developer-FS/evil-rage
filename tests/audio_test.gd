@@ -23,6 +23,10 @@ const SHIFTING_VOID := preload("res://scenes/trolls/shifting_void.tscn")
 const CREEPING_SPIKES := preload("res://scenes/trolls/creeping_spikes.tscn")
 const POP_BLOCK := preload("res://scenes/trolls/pop_block.tscn")
 const CHEST := preload("res://scenes/trolls/treasure_chest.tscn")
+const PORTAL := preload("res://scenes/trolls/portal.tscn")
+const COIN := preload("res://scenes/trolls/coin.tscn")
+const REAPER := preload("res://scenes/trolls/reaper.tscn")
+const GHOST := preload("res://scenes/trolls/ghost.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -56,6 +60,12 @@ func _ready() -> void:
 	await _run("good chest chimes", _test_chest_good)
 	await _run("bad chest chimes, then the curse", _test_chest_bad)
 	await _run("amulet shatters when it takes a hit", _test_shield)
+	await _run("portal whooshes", _test_portal)
+	await _run("coin chimes", _test_coin)
+	await _run("bomb coin chimes, hisses, then booms", _test_bomb)
+	await _run("Death tolls as he rises, then the saw whines", _test_reaper_saw)
+	await _run("Death's bullet fires with a thump", _test_reaper_bullet)
+	await _run("ghost moans when it gives chase", _test_ghost)
 	await _run("volume changes apply to the bus", _test_volume)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
@@ -332,3 +342,62 @@ func _test_shield() -> bool:
 	_place(HAZARD, Vector2(32, 152), Vector2(16, 8))
 	await _frames(10)
 	return &"shield" in _heard and not &"death" in _heard
+
+
+func _test_portal() -> bool:
+	var a: Portal = _place(PORTAL, Vector2(60, 160))
+	var b: Portal = _place(PORTAL, Vector2(200, 160))
+	a.exit = a.get_path_to(b)
+	Input.action_press("move_right")
+	await _frames(40)
+	return _heard.count(&"portal") == 1
+
+
+func _coin(kind: Coin.Kind) -> void:
+	var coin: Coin = COIN.instantiate()
+	coin.position = Vector2(56, 152)
+	coin.kind = kind
+	_world.add_child(coin)
+	Input.action_press("move_right")
+	await _frames(40)
+
+
+func _test_coin() -> bool:
+	await _coin(Coin.Kind.GOLD)
+	Game.attempt_coins = 0
+	return _heard == [&"coin"]
+
+
+func _test_bomb() -> bool:
+	await _coin(Coin.Kind.BOMB)
+	return _heard.slice(0, 4) == [&"coin", &"fuse", &"explosion", &"death"]
+
+
+func _reaper(pattern: String) -> void:
+	var reaper: Reaper = REAPER.instantiate()
+	reaper.area = Rect2(200, 120, 1, 1)
+	reaper.pattern = pattern
+	reaper.first_delay = 0.1
+	_world.add_child(reaper)
+	await reaper.cast
+	# Let the shot reach the room before the room goes.
+	await _frames(2)
+
+
+func _test_reaper_saw() -> bool:
+	await _reaper("s")
+	return _heard == [&"reaper", &"saw"]
+
+
+func _test_reaper_bullet() -> bool:
+	await _reaper("b")
+	return _heard == [&"reaper", &"bullet"]
+
+
+func _test_ghost() -> bool:
+	await _frames(1)
+	var ghost: Ghost = GHOST.instantiate()
+	ghost.position = Vector2(10, 140)
+	_world.add_child(ghost)
+	await _frames(10)
+	return _heard == [&"ghost"]

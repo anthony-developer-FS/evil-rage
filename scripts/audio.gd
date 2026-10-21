@@ -35,6 +35,14 @@ const SFX := {
 	&"chest": preload("res://assets/audio/sfx/chest.wav"),
 	&"curse": preload("res://assets/audio/sfx/curse.wav"),
 	&"shield": preload("res://assets/audio/sfx/shield.wav"),
+	&"portal": preload("res://assets/audio/sfx/portal.wav"),
+	&"coin": preload("res://assets/audio/sfx/coin.wav"),
+	&"fuse": preload("res://assets/audio/sfx/fuse.wav"),
+	&"explosion": preload("res://assets/audio/sfx/explosion.wav"),
+	&"reaper": preload("res://assets/audio/sfx/reaper.wav"),
+	&"saw": preload("res://assets/audio/sfx/saw.wav"),
+	&"bullet": preload("res://assets/audio/sfx/bullet.wav"),
+	&"ghost": preload("res://assets/audio/sfx/ghost.wav"),
 }
 const MUSIC := preload("res://assets/audio/music/theme.ogg")
 
@@ -56,6 +64,10 @@ const TRAP_SOUNDS := {
 	&"CreepingSpikes": &"frost",
 	&"PopBlock": &"pop_block",
 	&"TreasureChest": &"chest",
+	&"Portal": &"portal",
+	&"Coin": &"coin",
+	&"Reaper": &"reaper",
+	&"Ghost": &"ghost",
 }
 ## Sounds that get a little random pitch so repeats don't sound robotic.
 const JITTER := [&"jump", &"wall_jump", &"land"]
@@ -156,6 +168,12 @@ func _on_node_added(node: Node) -> void:
 		node.cursed.connect(_play_later.bind(&"curse", 0.3))
 	if node is CreepingSpikes:
 		node.retracted.connect(play.bind(&"frost"))
+	if node is Coin:
+		node.lit.connect(play.bind(&"fuse"))
+		node.exploded.connect(play.bind(&"explosion"))
+	if node is Reaper:
+		# Each cast is named after its sound: "saw" or "bullet".
+		node.cast.connect(play)
 
 
 func _on_landed(fall_speed: float) -> void:

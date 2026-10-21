@@ -24,6 +24,10 @@ const SHIFTING_VOID := preload("res://scenes/trolls/shifting_void.tscn")
 const CREEPING_SPIKES := preload("res://scenes/trolls/creeping_spikes.tscn")
 const POP_BLOCK := preload("res://scenes/trolls/pop_block.tscn")
 const CHEST := preload("res://scenes/trolls/treasure_chest.tscn")
+const PORTAL := preload("res://scenes/trolls/portal.tscn")
+const COIN := preload("res://scenes/trolls/coin.tscn")
+const REAPER := preload("res://scenes/trolls/reaper.tscn")
+const GHOST := preload("res://scenes/trolls/ghost.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -65,11 +69,33 @@ func _ready() -> void:
 	await _run("chest: lead boots shorten the jump", _test_chest_lead)
 	await _run("chest: mimic bites", _test_chest_mimic)
 	await _run("chest: alarm sets off a trap", _test_chest_alarm)
+	await _run("portal sends the player to its exit, still running", _test_portal)
+	await _run("a pair of portals does not bounce the player back", _test_portal_pair)
+	await _run("an exit-only portal does nothing", _test_portal_exit_only)
+	await _run("gold coin is collected and counted", _test_coin_gold)
+	await _run("bomb coin chimes, then explodes", _test_coin_bomb)
+	await _run("a bomb with a fuse can be outrun", _test_coin_fuse)
+	await _run("a bomb with approach can be baited", _test_coin_bait)
+	await _run("platform coins hold the player up", _test_coin_platform)
+	await _run("Death rises on the far side of the screen", _test_reaper_far_side)
+	await _run("Death's saw kills a player who stands still", _test_reaper_saw)
+	await _run("a block stops a plain saw", _test_saw_blocked)
+	await _run("a growing saw swells where the player stood", _test_saw_grow)
+	await _run("a chasing saw follows the player", _test_saw_chase)
+	await _run("Death fires bullets level", _test_reaper_bullet)
+	await _run("Death moves across the room when approached", _test_reaper_moves)
+	await _run("touching Death kills", _test_reaper_touch)
+	await _run("ghost chases while the player looks away", _test_ghost_chases)
+	await _run("ghost freezes while watched", _test_ghost_shy)
+	await _run("ghost kills on touch", _test_ghost_kills)
+	await _run("a sleeping ghost wakes on its trigger", _test_ghost_trigger)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
 
 
 func _run(name: String, test: Callable) -> void:
+	# Death picks where to appear at random. Seed it, so a failure can be replayed.
+	seed(name.hash())
 	_world = Node2D.new()
 	add_child(_world)
 	_place(BLOCK, Vector2(0, 160), Vector2(320, 20))
@@ -559,3 +585,279 @@ func _test_chest_alarm() -> bool:
 	Input.action_press("move_right")
 	await _frames(20)
 	return asleep and c.phase != CreepingSpikes.Phase.WAITING
+
+
+func _portal(pos: Vector2) -> Portal:
+	var portal: Portal = PORTAL.instantiate()
+	portal.position = pos
+	_world.add_child(portal)
+	return portal
+
+
+func _test_portal() -> bool:
+	var a := _portal(Vector2(80, 160))
+	var b := _portal(Vector2(240, 160))
+	a.exit = a.get_path_to(b)
+	Input.action_press("move_right")
+	var moved := [false]
+	_player.teleported.connect(func() -> void: moved[0] = true)
+	for i in 120:
+		await _frames(1)
+		if moved[0]:
+			break
+	var arrived := _player.global_position.x > 230.0 and _player.velocity.x > 50.0
+	await _frames(20)
+	return arrived and _player.global_position.x > 245.0
+
+
+func _test_portal_pair() -> bool:
+	var a := _portal(Vector2(80, 160))
+	var b := _portal(Vector2(240, 160))
+	a.exit = a.get_path_to(b)
+	b.exit = b.get_path_to(a)
+	var trips := [0]
+	_player.teleported.connect(func() -> void: trips[0] += 1)
+	Input.action_press("move_right")
+	await _frames(50)
+	Input.action_release("move_right")
+	await _frames(20)
+	var one_way: bool = trips[0] == 1 and _player.global_position.x > 245.0
+	# And back through b, the other way.
+	Input.action_press("move_left")
+	await _frames(60)
+	return one_way and trips[0] == 2 and _player.global_position.x < 80.0
+
+
+func _test_portal_exit_only() -> bool:
+	_portal(Vector2(80, 160))
+	Input.action_press("move_right")
+	await _frames(90)
+	return _player.global_position.x > 100.0
+
+
+func _coin(pos: Vector2, kind: Coin.Kind) -> Coin:
+	var coin: Coin = COIN.instantiate()
+	coin.position = pos
+	coin.kind = kind
+	_world.add_child(coin)
+	return coin
+
+
+func _test_coin_gold() -> bool:
+	var before := Game.attempt_coins
+	var coin := _coin(Vector2(80, 152), Coin.Kind.GOLD)
+	Input.action_press("move_right")
+	await _frames(60)
+	var counted := Game.attempt_coins == before + 1
+	Game.attempt_coins = before
+	return coin.collected and counted and not _player.is_dead
+
+
+func _test_coin_bomb() -> bool:
+	_coin(Vector2(80, 152), Coin.Kind.BOMB)
+	Input.action_press("move_right")
+	await _frames(60)
+	return _player.is_dead
+
+
+func _test_coin_fuse() -> bool:
+	var coin := _coin(Vector2(80, 152), Coin.Kind.BOMB)
+	coin.fuse = 0.4
+	var blew := [false]
+	coin.exploded.connect(func() -> void: blew[0] = true)
+	Input.action_press("move_right")
+	await _frames(150)
+	return blew[0] and not _player.is_dead
+
+
+func _test_coin_bait() -> bool:
+	var coin := _coin(Vector2(120, 152), Coin.Kind.BOMB)
+	coin.fuse = 0.4
+	coin.approach = 40.0
+	var blew := [false]
+	coin.exploded.connect(func() -> void: blew[0] = true)
+	# Edge up until it lights, back off, wait, then walk through where it was.
+	Input.action_press("move_right")
+	for i in 120:
+		await _frames(1)
+		if coin._lit:
+			break
+	Input.action_release("move_right")
+	Input.action_press("move_left")
+	await _frames(40)
+	Input.action_release("move_left")
+	await _frames(40)
+	Input.action_press("move_right")
+	await _frames(120)
+	return blew[0] and not _player.is_dead and _player.global_position.x > 150.0
+
+
+func _test_coin_platform() -> bool:
+	_ledge(80)
+	# A bridge of solid coins across the void, a coin every 12 pixels.
+	for i in 12:
+		_coin(Vector2(85 + i * 12, 167), Coin.Kind.PLATFORM)
+	_player.position = Vector2(40, 159)
+	Input.action_press("move_right")
+	await _frames(140)
+	return not _player.is_dead and _player.global_position.x > 150.0 and _player.global_position.y < 165.0
+
+
+func _reaper(pattern: String) -> Reaper:
+	var reaper: Reaper = REAPER.instantiate()
+	reaper.area = Rect2(24, 100, 272, 20)
+	reaper.pattern = pattern
+	reaper.first_delay = 0.2
+	reaper.too_close = 0.0
+	_world.add_child(reaper)
+	return reaper
+
+
+func _test_reaper_far_side() -> bool:
+	var a := _reaper("")
+	await _frames(5)
+	var right_side := a.visible and a.global_position.x >= 160.0
+	a.queue_free()
+	_player.position = Vector2(280, 159)
+	await _frames(2)
+	var b := _reaper("")
+	await _frames(5)
+	return right_side and b.visible and b.global_position.x <= 160.0
+
+
+func _test_reaper_saw() -> bool:
+	_reaper("s")
+	await _frames(480)
+	return _player.is_dead
+
+
+func _test_saw_blocked() -> bool:
+	_place(BLOCK, Vector2(56, 100), Vector2(16, 60))
+	_reaper("s")
+	await _frames(300)
+	return not _player.is_dead
+
+
+func _test_saw_grow() -> bool:
+	var reaper := _reaper("g")
+	reaper.area = Rect2(170, 100, 1, 1)
+	var shots: Array[Saw] = []
+	_world.child_entered_tree.connect(func(n: Node) -> void:
+		if n is Saw:
+			shots.append(n))
+	await reaper.cast
+	# Step well away before it gets there.
+	Input.action_press("move_right")
+	await _frames(60)
+	Input.action_release("move_right")
+	await _frames(240)
+	return not shots.is_empty() and shots[0].radius > 15.0 and not _player.is_dead
+
+
+func _test_saw_chase() -> bool:
+	var reaper := _reaper("c")
+	reaper.area = Rect2(280, 60, 1, 1)
+	await reaper.cast
+	# It set off toward where the player stood. They move; it follows anyway.
+	Input.action_press("move_right")
+	for i in 240:
+		await _frames(1)
+		if _player.global_position.x > 200.0 or _player.is_dead:
+			break
+	Input.action_release("move_right")
+	await _frames(400)
+	return _player.is_dead
+
+
+func _test_reaper_bullet() -> bool:
+	var reaper := _reaper("b")
+	reaper.area = Rect2(280, 152, 1, 1)
+	var shots: Array[Bullet] = []
+	_world.child_entered_tree.connect(func(n: Node) -> void:
+		if n is Bullet:
+			shots.append(n))
+	await reaper.cast
+	await _frames(2)
+	var level := shots.size() == 1 and shots[0].velocity.y == 0.0 and shots[0].velocity.x < 0.0
+	await _frames(300)
+	return level and _player.is_dead
+
+
+func _test_reaper_moves() -> bool:
+	var reaper := _reaper("")
+	reaper.area = Rect2(24, 140, 272, 1)
+	reaper.too_close = 48.0
+	await _frames(60)
+	var first := reaper.global_position.x
+	# Walk at him. He should be gone before the player gets there.
+	Input.action_press("move_right")
+	for i in 240:
+		await _frames(1)
+		if _player.global_position.x > first - 40.0:
+			break
+	Input.action_release("move_right")
+	await _frames(90)
+	return first >= 160.0 and reaper.visible and reaper.global_position.x < 160.0 and not _player.is_dead
+
+
+func _test_reaper_touch() -> bool:
+	var reaper := _reaper("")
+	reaper.area = Rect2(200, 158, 1, 1)
+	await _frames(30)
+	Input.action_press("move_right")
+	await _frames(200)
+	return reaper.visible and _player.is_dead
+
+
+func _ghost(pos: Vector2, trigger := Rect2()) -> Ghost:
+	# Let the player's move to the start settle first, or the ghost meets them there.
+	await _frames(1)
+	var ghost: Ghost = GHOST.instantiate()
+	ghost.position = pos
+	ghost.trigger = trigger
+	_world.add_child(ghost)
+	return ghost
+
+
+func _test_ghost_chases() -> bool:
+	# Ghost behind, player walking away from it.
+	_player.position = Vector2(100, 159)
+	var ghost: Ghost = await _ghost(Vector2(30, 150))
+	Input.action_press("move_right")
+	await _frames(2)
+	Input.action_release("move_right")
+	await _frames(30)
+	return ghost.chasing and ghost.global_position.x > 32.0
+
+
+func _test_ghost_shy() -> bool:
+	_player.position = Vector2(100, 159)
+	var ghost: Ghost = await _ghost(Vector2(30, 150))
+	# Turn to face it.
+	Input.action_press("move_left")
+	await _frames(2)
+	Input.action_release("move_left")
+	await _frames(10)
+	var start := ghost.global_position
+	await _frames(120)
+	return not ghost.chasing and ghost.global_position == start and not _player.is_dead
+
+
+func _test_ghost_kills() -> bool:
+	_player.position = Vector2(100, 159)
+	await _ghost(Vector2(30, 150))
+	Input.action_press("move_right")
+	await _frames(2)
+	Input.action_release("move_right")
+	await _frames(300)
+	return _player.is_dead
+
+
+func _test_ghost_trigger() -> bool:
+	_player.position = Vector2(100, 159)
+	var ghost: Ghost = await _ghost(Vector2(30, 150), Rect2(120, -20, 20, 40))
+	await _frames(60)
+	var slept := not ghost.awake and ghost.global_position.x == 30.0
+	Input.action_press("move_right")
+	await _frames(60)
+	return slept and ghost.awake

@@ -1,0 +1,44 @@
+[gd_resource type="SpriteFrames" load_steps=6 format=3]
+
+[ext_resource type="Texture2D" path="res://art/monsters/ghost.svg" id="1"]
+
+[sub_resource type="AtlasTexture" id="shy_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="shy_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="chase_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="chase_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 16, 16, 16)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("shy_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("shy_1")
+}],
+"loop": true,
+"name": &"shy",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("chase_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("chase_1")
+}],
+"loop": true,
+"name": &"chase",
+"speed": 6.0
+}]

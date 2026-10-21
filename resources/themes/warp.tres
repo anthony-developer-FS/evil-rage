@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WorldTheme" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_theme.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/themes/warp/backdrop.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/themes/warp/tiles.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/themes/warp/door.png" id="4"]
+
+[resource]
+script = ExtResource("1")
+display_name = "The Rift Ruins"
+backdrop = ExtResource("2")
+tiles = ExtResource("3")
+door = ExtResource("4")
+spike_color = Color(0.85, 0.45, 1, 1)
+title_color = Color(0.78, 0.65, 1, 1)
+ambient = 1
+ambient_color = Color(0.75, 0.55, 1, 0.9)
