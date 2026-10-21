@@ -4,6 +4,10 @@ extends CharacterBody2D
 ## tick so the controls stay predictable. Only the level is allowed to cheat.
 
 signal died
+signal jumped
+signal wall_jumped
+## fall_speed is the downward speed just before touching down.
+signal landed(fall_speed: float)
 
 @export var tuning: MovementTuning = preload("res://resources/default_tuning.tres")
 
@@ -38,7 +42,10 @@ func _physics_process(delta: float) -> void:
 		velocity.y *= tuning.jump_cut
 		_jumping = false
 
+	var fall_speed := velocity.y
 	move_and_slide()
+	if not on_floor and is_on_floor():
+		landed.emit(fall_speed)
 
 	if Input.is_action_just_pressed("restart"):
 		die()
@@ -92,10 +99,12 @@ func _try_jump(wall_dir: float, on_floor: bool) -> void:
 		return
 	if on_floor or _coyote_timer > 0.0:
 		velocity.y = -tuning.jump_velocity
+		jumped.emit()
 	elif wall_dir != 0.0:
 		velocity = Vector2(-wall_dir * tuning.wall_jump_velocity.x, -tuning.wall_jump_velocity.y)
 		_wall_lock_timer = tuning.wall_jump_lock
 		_wall_lock_dir = -wall_dir
+		wall_jumped.emit()
 	else:
 		return
 	_buffer_timer = 0.0

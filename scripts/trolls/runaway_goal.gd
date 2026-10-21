@@ -4,6 +4,9 @@ extends Goal
 ## The exit flees to the next point each time the player gets close. Once the
 ## points run out it stays put and can be reached.
 
+## Fires on every hop. Audio listens for it.
+signal triggered
+
 ## Positions to flee to, in the room's coordinates, in order.
 @export var flee_points: PackedVector2Array = []:
 	set(value):
@@ -44,6 +47,7 @@ func _flee(_body: Node2D) -> void:
 	_fleeing = true
 	var target := flee_points[_next]
 	_next += 1
+	triggered.emit()
 	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "global_position", target, 0.2)
 	await tween.finished
