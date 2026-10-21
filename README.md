@@ -6,7 +6,7 @@ A punishing 2D precision platformer where the levels lie to you. Built with Godo
 
 1. Install [Godot 4.5](https://godotengine.org/download) (standard build, no .NET needed).
 2. Open Godot, choose **Import**, and select this folder's `project.godot`.
-3. Press F5. Room 1 loads. Beat all forty rooms across eight worlds.
+3. Press F5. Room 1 loads. Beat all sixty rooms across twelve worlds.
 
 Controls: A/D or arrows to move, Space/K/Up to jump, R to restart, F11 or Alt+Enter to toggle fullscreen, `-` and `=` for volume, M to toggle music. Gamepad works too (stick or d-pad, A to jump).
 
@@ -39,6 +39,10 @@ The world is drawn into a 320x180 viewport and scaled up by whole numbers, so pi
 | `scenes/rooms/room_26.tscn` to `room_30.tscn` | The Sky Ruins: updrafts that make you float, crumbling stepping stones and a ferry |
 | `scenes/rooms/room_31.tscn` to `room_35.tscn` | The Mirror Halls: mirrors that swap left and right, and rooms that change after you die |
 | `scenes/rooms/room_36.tscn` to `room_40.tscn` | The Upside-Down Spire: gravity flips, ceiling walks, and a finale that uses everything |
+| `scenes/rooms/room_41.tscn` to `room_45.tscn` | The Shifting Dunes: holes in the floor that slide when you get close or jump |
+| `scenes/rooms/room_46.tscn` to `room_50.tscn` | The Frozen Depths: frost that covers the floor but one square, then chases you out |
+| `scenes/rooms/room_51.tscn` to `room_55.tscn` | The Clockwork Vault: blocks that burst out of the floor or thin air and shove you off ledges |
+| `scenes/rooms/room_56.tscn` to `room_60.tscn` | The Moon Observatory: moon boots that jump to the ceiling, and spikes on the ceiling |
 | `scripts/world_theme.gd`, `resources/themes/` | One theme resource per world: backdrop, tiles, spike and title colors, ambient motes |
 | `scripts/backdrop.gd` | Draws the room's backdrop and its fireflies, drips, dust or embers |
 | `tools/make_themes.py` | Paints every world's backdrop and tile sheet into `art/themes/`. Edit and rerun it to change the art |
@@ -65,6 +69,10 @@ Drop a trap scene into a room and set its `size` in the inspector. In the editor
 | Mirror zone | Walking in swaps left and right (or back, with `reversed` off). It stays that way after leaving. `concealed` hides it | `reversed`, `concealed` |
 | Slow-fall zone | An updraft. Inside it gravity is weak and falls are capped at a drift, so jumps float high and drops become glides. Only works while inside | `gravity_scale`, `fall_speed` |
 | Retry variant | Not a trap itself: its children only exist on some attempts. Put the first-try layout under one with `max_deaths = 0` and the changed layout under one with `min_deaths = 1` | `min_deaths`, `max_deaths` |
+| Shifting void | A strip of floor with a hole that slides to the next of its `positions` when the player comes within `approach` pixels, or, with `on_jump`, every time they jump. With `repeat` off it stops at the last one | `size`, `hole_width`, `positions`, `approach`, `on_jump`, `repeat`, `shift_time` |
+| Creeping spikes | A row of spikes on the floor that grows one 8 px cell at a time from both ends until only the safe square is bare, holds, sinks, then grows back out from the safe square so the player has to run. `marker_cell` draws the safe-square mark somewhere else, which makes it a lie | `safe_cell`, `safe_cells`, `marker_cell`, `trigger`, `delay`, `creep_interval`, `hold`, `chase_delay`, `chase_interval` |
+| Pop block | Hidden until its `trigger` is entered, then bursts out of the floor (or thin air, with `from_floor` off) and slides by `travel`. Whoever it touches while moving is thrown by `shove`, with the controls gone for a moment | everything a moving wall has, plus `shove`, `from_floor` |
+| Treasure chest | Opens on touch and gives the player something until they die: see below | `gift`, `wakes` |
 
 A spring (`scenes/objects/spring.tscn`) is not a trap but rooms use it as one. Place it on the floor: walking onto it gives a short hop, and landing on it with jump held launches the player about `power² / 1800` pixels. Rooms 8 and 10 lean on that difference.
 
@@ -75,6 +83,23 @@ Gravity and mirrors are state on the player (`gravity_sign`, `controls_reversed`
 A moving wall is an `AnimatableBody2D`, so the physics engine carries a player standing on it. It figures the wall's speed out a frame late, so keep walls under about 200 px/s or a rider sinks in far enough to count as crushed. Rooms 22, 24 and 39 are presses: a short `pause` at the bottom and a long `home_pause` at the top.
 
 The falling ceiling's `trigger_reach` widens its trigger past both sides, so it can drop just in front of the player. Room 18's portcullis uses it.
+
+The shifting void and creeping spikes find the player through the `player` group, so they react from anywhere in the room. A void's floor is two ordinary blocks either side of the hole, so it tiles like the ground around it. Put pit spikes under the strip before the void in the scene, and the floor hides them until the hole goes past.
+
+## Treasure chests
+
+Every chest looks the same. The first ones really help, so players learn to grab them; later ones are lies. A banner says what was inside, and a bad one plays a sour sting after the chime. The effect lasts until the player dies. In the editor a red or green line over a chest shows which kind it is.
+
+| Gift | Effect | Where |
+| --- | --- | --- |
+| Feathered boots (`DOUBLE_JUMP`) | One extra jump in mid-air | 43, 54 |
+| Lucky amulet (`SHIELD`) | Takes one hit from spikes or a trap. Falling out of the room and being crushed still kill | 45, 47, 59 |
+| Lead boots (`LEAD_BOOTS`) | Jumps lose a third of their height | 48, 55 |
+| Spring boots (`SPRING_BOOTS`) | Jumps go half again as high. In a room with a spiked ceiling, that is a death sentence | 57 |
+| Mimic (`MIMIC`) | It bites | 50, 52, 60 |
+| Alarm (`ALARM`) | Sets off the trap at `wakes` (anything with a `spring()` method: voids, creeping spikes, pop blocks) | trap tests |
+
+A room's `jump_scale` multiplies the player's jump. The Moon Observatory sets 1.9: a held jump reaches the ceiling, a tap stays low, and anything between depends on how long jump is held.
 
 Rooms reload entirely on death, so every troll trap resets for free. A new room is a scene whose root uses `room.gd` and contains `Player`, `Spawn`, `Goal` and `Hud`. Set the goal's `next_room` to chain rooms; leave it empty on the last room.
 
@@ -92,6 +117,10 @@ Each room's root has a `world_theme` (a `WorldTheme` resource in `resources/them
 | The Sky Ruins | 26 to 30 | Wind |
 | The Mirror Halls | 31 to 35 | Sparkles |
 | The Upside-Down Spire | 36 to 40 | Rising motes |
+| The Shifting Dunes | 41 to 45 | Blowing sand |
+| The Frozen Depths | 46 to 50 | Snow |
+| The Clockwork Vault | 51 to 55 | Sparks |
+| The Moon Observatory | 56 to 60 | Twinkling stars |
 
 Tiles are laid on a grid aligned to the room, so a fake floor next to a real block joins without a seam. To add a world, add a painter pair to `THEMES` in `tools/make_themes.py`, run it (needs numpy), and create a theme resource pointing at the new images. The images are a few KB each and are stored as plain git objects rather than LFS, like the audio.
 
@@ -99,7 +128,7 @@ Tiles are laid on a grid aligned to the room, so a fake floor next to a real blo
 
 Everything you hear is synthesized by `tools/make_audio.py` (needs Python with numpy, and ffmpeg for the music). No third-party samples are used, so the audio is ours to ship. See `assets/audio/LICENSE.md`.
 
-`scripts/audio.gd` is an autoload that listens rather than being called: when a `Player`, `Goal` or troll trap enters the tree it connects their signals to sounds. The player emits `jumped`, `wall_jumped`, `landed` and `died`; each trap emits `triggered` when it springs (the falling ceiling also emits `landed`). To give a new trap a sound, add a `triggered` signal, emit it, and add the class to `TRAP_SOUNDS` in `audio.gd`.
+`scripts/audio.gd` is an autoload that listens rather than being called: when a `Player`, `Goal` or troll trap enters the tree it connects their signals to sounds. The player emits `jumped`, `wall_jumped`, `landed`, `died` and `shield_broken`; each trap emits `triggered` when it springs (the falling ceiling also emits `landed`, creeping spikes emit `retracted` when they sink, and a chest emits `cursed` when what was inside is bad). To give a new trap a sound, add a `triggered` signal, emit it, and add the class to `TRAP_SOUNDS` in `audio.gd`.
 
 There are three buses in `default_bus_layout.tres`: Master, Music and SFX. Volumes are saved to `user://settings.cfg`, and `Audio.set_volume(bus, 0..1)` is ready for an options menu. Headless runs skip playback but still emit `Audio.played`, which the audio tests use.
 
@@ -109,4 +138,4 @@ There are three buses in `default_bus_layout.tres`: Master, Music and SFX. Volum
 GODOT=/path/to/godot ./run_tests.sh
 ```
 
-Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run, and `LEVEL_KIND=solve` (or `naive`) to play only one of the two runs. Rooms with retry variants (33 and 35) also have `retry_solve` and `retry_naive` runs, played as if the player had already died once there. For mirrored rooms, `["key", "left", x]` holds a key until the player crosses `x` from either side, since the left key may be walking them right.
+Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run, and `LEVEL_KIND=solve` (or `naive`) to play only one of the two runs. Rooms with creeping spikes wait a set number of frames on the safe square; the frost leaves about a third of a second between sinking and chasing, so if you retune a room's timings, retune its wait too. Rooms with retry variants (33 and 35) also have `retry_solve` and `retry_naive` runs, played as if the player had already died once there. For mirrored rooms, `["key", "left", x]` holds a key until the player crosses `x` from either side, since the left key may be walking them right.

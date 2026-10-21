@@ -20,6 +20,10 @@ const GRAVITY_FIELD := preload("res://scenes/trolls/gravity_field.tscn")
 const MIRROR_ZONE := preload("res://scenes/trolls/mirror_zone.tscn")
 const SLOW_FALL := preload("res://scenes/trolls/slow_fall_zone.tscn")
 const RETRY_VARIANT := preload("res://scenes/trolls/retry_variant.tscn")
+const SHIFTING_VOID := preload("res://scenes/trolls/shifting_void.tscn")
+const CREEPING_SPIKES := preload("res://scenes/trolls/creeping_spikes.tscn")
+const POP_BLOCK := preload("res://scenes/trolls/pop_block.tscn")
+const CHEST := preload("res://scenes/trolls/treasure_chest.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -48,6 +52,19 @@ func _ready() -> void:
 	await _run("slow-fall zone caps the fall", _test_slow_fall)
 	await _run("downward spikes kill from below", _test_ceiling_spikes)
 	await _run("retry variant only exists on its attempts", _test_retry_variant)
+	await _run("shifting void lunges at a player who comes close", _test_void_approach)
+	await _run("shifting void moves every jump, in order", _test_void_jump)
+	await _run("creeping spikes spare only the safe square", _test_creep_safe)
+	await _run("creeping spikes kill outside the safe square", _test_creep_kills)
+	await _run("creeping spikes chase out of the safe square", _test_creep_chase)
+	await _run("a runner outpaces the chasing spikes", _test_creep_escape)
+	await _run("pop block hides, then shoves the player", _test_pop_block)
+	await _run("chest: feathered boots give a mid-air jump", _test_chest_double_jump)
+	await _run("chest: amulet takes one hit", _test_chest_shield)
+	await _run("chest: amulet does not save a fall", _test_chest_shield_fall)
+	await _run("chest: lead boots shorten the jump", _test_chest_lead)
+	await _run("chest: mimic bites", _test_chest_mimic)
+	await _run("chest: alarm sets off a trap", _test_chest_alarm)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
 
@@ -332,3 +349,213 @@ func _test_retry_variant() -> bool:
 	await _frames(2)
 	Game.room_deaths = saved
 	return not is_instance_valid(first) and is_instance_valid(later)
+
+
+## Swaps the full-width test floor for a short ledge on the left, so a strip of
+## trap floor can sit to its right.
+func _ledge(width: float) -> void:
+	_world.get_child(0).free()
+	_place(BLOCK, Vector2(0, 160), Vector2(width, 20))
+
+
+func _void(pos: Vector2, size: Vector2, positions: PackedFloat32Array) -> ShiftingVoid:
+	var v: ShiftingVoid = SHIFTING_VOID.instantiate()
+	v.position = pos
+	v.size = size
+	v.positions = positions
+	return v
+
+
+func _test_void_approach() -> bool:
+	_ledge(80)
+	# Hole starts well ahead, then lunges back under the player's feet.
+	var v := _void(Vector2(80, 160), Vector2(240, 20), PackedFloat32Array([80, 64]))
+	v.approach = 24.0
+	v.hole_width = 24.0
+	_world.add_child(v)
+	Input.action_press("move_right")
+	await _frames(240)
+	return v.hole_x == 64.0 and _player.global_position.y > 175.0
+
+
+func _test_void_jump() -> bool:
+	_ledge(80)
+	var v := _void(Vector2(80, 160), Vector2(240, 20), PackedFloat32Array([120, 40, 200]))
+	v.on_jump = true
+	_world.add_child(v)
+	await _frames(10)
+	var seen: Array[float] = []
+	for i in 3:
+		Input.action_press("jump")
+		await _frames(3)
+		Input.action_release("jump")
+		await _frames(90)
+		seen.append(v.hole_x)
+	return seen == [40.0, 200.0, 120.0] and not _player.is_dead
+
+
+func _spikes(safe: int) -> CreepingSpikes:
+	var c: CreepingSpikes = CREEPING_SPIKES.instantiate()
+	c.position = Vector2(0, 152)
+	c.size = Vector2(320, 8)
+	c.safe_cell = safe
+	c.delay = 0.0
+	c.creep_interval = 0.02
+	c.hold = 10.0
+	return c
+
+
+func _test_creep_safe() -> bool:
+	# The player stands on x 40, which is cells 4 and 5.
+	var c := _spikes(4)
+	_world.add_child(c)
+	await _frames(180)
+	var bare := not c.is_cell_deadly(4) and not c.is_cell_deadly(5)
+	var covered := c.is_cell_deadly(3) and c.is_cell_deadly(6) and c.is_cell_deadly(0) and c.is_cell_deadly(39)
+	return bare and covered and not _player.is_dead
+
+
+func _test_creep_kills() -> bool:
+	_world.add_child(_spikes(20))
+	await _frames(180)
+	return _player.is_dead
+
+
+func _test_creep_chase() -> bool:
+	var c := _spikes(4)
+	c.hold = 0.2
+	c.chase_delay = 0.2
+	_world.add_child(c)
+	await _frames(120)
+	var retracted := c.phase >= CreepingSpikes.Phase.RETRACTED and not _player.is_dead
+	await _frames(120)
+	# Standing still on the safe square: the chase starts right under the player.
+	return retracted and _player.is_dead
+
+
+func _test_creep_escape() -> bool:
+	var c := _spikes(4)
+	c.hold = 0.2
+	c.chase_delay = 0.3
+	_world.add_child(c)
+	await _frames(60)
+	await c.retracted
+	Input.action_press("move_right")
+	await _frames(300)
+	return not _player.is_dead and _player.global_position.x > 300.0
+
+
+func _test_pop_block() -> bool:
+	var block: PopBlock = POP_BLOCK.instantiate()
+	block.position = Vector2(100, 160)
+	block.size = Vector2(16, 16)
+	block.travel = Vector2(0, -16)
+	block.duration = 0.15
+	block.trigger = Rect2(-10, -24, 10, 24)
+	block.shove = Vector2(-240, -120)
+	_world.add_child(block)
+	await _frames(5)
+	var hidden := not block.visible
+	Input.action_press("move_right")
+	var furthest := 0.0
+	for i in 120:
+		await _frames(1)
+		furthest = maxf(furthest, _player.global_position.x)
+	# Thrown back and up, nowhere near the block.
+	return hidden and block.visible and _player.global_position.x < furthest - 24.0 and not _player.is_dead
+
+
+func _chest(gift: TreasureChest.Gift) -> TreasureChest:
+	var chest: TreasureChest = CHEST.instantiate()
+	chest.position = Vector2(60, 160)
+	chest.gift = gift
+	_world.add_child(chest)
+	return chest
+
+
+func _jump_peak() -> float:
+	var rest := _player.global_position.y
+	var top := rest
+	Input.action_press("jump")
+	for i in 90:
+		await _frames(1)
+		top = minf(top, _player.global_position.y)
+	Input.action_release("jump")
+	await _frames(60)
+	return rest - top
+
+
+func _test_chest_double_jump() -> bool:
+	_chest(TreasureChest.Gift.DOUBLE_JUMP)
+	_player.position = Vector2(60, 159)
+	await _frames(10)
+	var rest := _player.global_position.y
+	Input.action_press("jump")
+	await _frames(30)
+	Input.action_release("jump")
+	await _frames(2)
+	Input.action_press("jump")
+	var top := rest
+	for i in 60:
+		await _frames(1)
+		top = minf(top, _player.global_position.y)
+	print("      double jump: %.1f px" % (rest - top))
+	return rest - top > 50.0
+
+
+func _test_chest_shield() -> bool:
+	_chest(TreasureChest.Gift.SHIELD)
+	_place(HAZARD, Vector2(96, 152), Vector2(32, 8))
+	_player.position = Vector2(60, 159)
+	await _frames(5)
+	var had := _player.shields
+	Input.action_press("move_right")
+	await _frames(60)
+	Input.action_release("move_right")
+	var survived := not _player.is_dead and _player.shields == 0
+	Input.action_press("move_right")
+	await _frames(200)
+	# One hit only: the next spikes still kill once the blink wears off.
+	_place(HAZARD, Vector2(200, 152), Vector2(120, 8))
+	await _frames(200)
+	return had == 1 and survived and _player.is_dead
+
+
+func _test_chest_shield_fall() -> bool:
+	_ledge(80)
+	_chest(TreasureChest.Gift.SHIELD)
+	Input.action_press("move_right")
+	await _frames(90)
+	# A bottomless fall has to kill, or the player would fall forever.
+	_player.die(true)
+	return _player.is_dead
+
+
+func _test_chest_lead() -> bool:
+	var before: float = await _jump_peak()
+	_chest(TreasureChest.Gift.LEAD_BOOTS)
+	_player.position = Vector2(60, 159)
+	await _frames(10)
+	var after: float = await _jump_peak()
+	print("      lead boots: %.1f px -> %.1f px" % [before, after])
+	return after < before * 0.6
+
+
+func _test_chest_mimic() -> bool:
+	var chest := _chest(TreasureChest.Gift.MIMIC)
+	Input.action_press("move_right")
+	await _frames(40)
+	return chest.opened and _player.is_dead
+
+
+func _test_chest_alarm() -> bool:
+	var c := _spikes(20)
+	c.trigger = Rect2(400, 0, 8, 8)
+	_world.add_child(c)
+	var chest := _chest(TreasureChest.Gift.ALARM)
+	chest.wakes = chest.get_path_to(c)
+	await _frames(10)
+	var asleep := c.phase == CreepingSpikes.Phase.WAITING
+	Input.action_press("move_right")
+	await _frames(20)
+	return asleep and c.phase != CreepingSpikes.Phase.WAITING

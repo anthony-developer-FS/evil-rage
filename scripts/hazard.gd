@@ -19,8 +19,20 @@ extends Area2D
 
 func _ready() -> void:
 	_sync()
+	set_physics_process(false)
 	if not Engine.is_editor_hint():
 		body_entered.connect(_on_body_entered)
+
+
+func _physics_process(_delta: float) -> void:
+	# A shield let someone survive the touch. Keep stabbing while they stay on the
+	# spikes, so they still die if they are here when it wears off.
+	var anyone := false
+	for body in get_overlapping_bodies():
+		if body is Player and not body.is_dead:
+			anyone = true
+			body.die()
+	set_physics_process(anyone)
 
 
 func _sync() -> void:
@@ -79,3 +91,5 @@ static func draw_spikes(item: CanvasItem, rect: Rect2, toward: Vector2, c: Color
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player:
 		body.die()
+		if not body.is_dead:
+			set_physics_process(true)

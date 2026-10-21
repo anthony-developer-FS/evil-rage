@@ -3,8 +3,8 @@ class_name Backdrop
 extends Node2D
 ## Paints the room's world theme behind everything, plus a few ambient motes:
 ## fireflies in the jungle, drips in the caves, dust in the temple, embers in the
-## castle, wind in the sky ruins, sparkles in the mirror halls. Unthemed rooms get
-## the old flat dark fill. Purely visual.
+## castle, wind in the sky ruins, sparkles in the mirror halls, snow in the frozen
+## depths. Unthemed rooms get the old flat dark fill. Purely visual.
 
 const SIZE := Vector2(320, 180)
 const FALLBACK := Color(0.09, 0.09, 0.12)
@@ -35,6 +35,8 @@ func _process(delta: float) -> void:
 			m.pos.x += sin(m.age * 1.7 + m.seed) * 6.0 * delta
 		elif _theme.ambient == WorldTheme.Ambient.DRIPS:
 			m.vel.y += 300.0 * delta
+		elif _theme.ambient == WorldTheme.Ambient.SNOW:
+			m.pos.x += sin(m.age * 1.3 + m.seed) * 8.0 * delta
 		if m.age > m.life:
 			_motes[i] = _spawn(false)
 	queue_redraw()
@@ -81,6 +83,9 @@ func _spawn(anywhere_in_life: bool) -> Dictionary:
 			life = _rng.randf_range(1.0, 2.5)
 		WorldTheme.Ambient.SPARKLES:
 			life = _rng.randf_range(1.5, 3.0)
+		WorldTheme.Ambient.SNOW:
+			vel = Vector2(_rng.randf_range(-2, 2), _rng.randf_range(8, 14))
+			life = _rng.randf_range(4.0, 8.0)
 	# Start the first batch partway through their lives so the room doesn't pulse.
 	var age := _rng.randf_range(0, life) if anywhere_in_life else 0.0
 	pos += vel * age

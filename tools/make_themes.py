@@ -521,6 +521,148 @@ def spire_backdrop():
     return img
 
 
+def dunes_backdrop():
+    rng = np.random.default_rng(91)
+    img = canvas(W, H, "#2a1a2e")
+    vgrad(img, 0, H, ["#2a1a34", "#4a2a40", "#7a4040", "#a8603e", "#c8844a"])
+    # A huge low sun, banded by heat haze.
+    sun = radial(222, 108, 46)
+    blend(img, radial(222, 108, 110, squash=0.6) * 0.5, "#d8904a", levels=4)
+    paint(img, sun > 0, "#f0b860")
+    paint(img, sun > 0.35, "#f8d880")
+    for y in (96, 104, 111, 117):
+        rect(img, 176, y, 92, 1, "#c8844a")
+    # A far ruined pyramid and the tops of buried columns.
+    triangle(img, 52, 74, 76, 40, "#6a3a3e", down=False)
+    triangle(img, 58, 80, 52, 34, "#7a4846", down=False)
+    rect(img, 76, 92, 6, 8, "#4a2830")
+    for x in (150, 160, 290):
+        h = int(rng.integers(10, 22))
+        rect(img, x, 118 - h, 5, h, "#7a4a44")
+        rect(img, x - 1, 118 - h, 7, 2, "#8a5a50")
+    # Dunes, far to near, each with a lit crest.
+    for i, (base, amp, col, lit) in enumerate([(112, 16, "#8a5040", "#b06a4a"), (128, 18, "#9a5a3e", "#c87e50"),
+                                               (146, 16, "#7a4432", "#a86444")]):
+        crest = base + noise1d(W, 92 + i, 60, 2) * amp
+        paint(img, column_mask(crest, False), col)
+        edge = column_mask(crest + 1, False) ^ column_mask(crest, False)
+        paint(img, edge, lit)
+    # Sand pouring down into a sinkhole in the middle distance.
+    blend(img, radial(120, 136, 26, squash=0.25) * 0.9, "#3a2024", levels=3)
+    for x in range(110, 131, 4):
+        for y in range(132, 140):
+            if (x + y) % 3 == 0:
+                img[y, x] = hexc("#c88a5a")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 150) / 30, 0, 1) * 0.5, "#4a2a2a", levels=3)
+    return img
+
+
+def frost_backdrop():
+    rng = np.random.default_rng(101)
+    img = canvas(W, H, "#0c1a2a")
+    vgrad(img, 0, H, ["#081420", "#0e2234", "#143048", "#10283c"])
+    ice = noise2d(W, H, 102, 16)
+    paint(img, ice > 0.6, "#12283e")
+    paint(img, ice > 0.7, "#183450")
+    # A frozen waterfall glowing from inside.
+    blend(img, radial(160, 90, 70, squash=1.6) * 0.5, "#1e4a6a", levels=4)
+    for x in range(140, 181):
+        top = 0
+        bottom = 150 - int(abs(x - 160) * 0.6)
+        shade = "#4a8ab0" if (x // 3) % 2 else "#3a7aa0"
+        rect(img, x, top, 1, bottom, shade)
+    for x in range(142, 179, 6):
+        rect(img, x, 10, 1, 120, "#8ac8e8")
+    rect(img, 136, 150, 50, 6, "#a8d8f0")
+    # Ice crystals jutting from both sides, pale and sharp.
+    for _ in range(18):
+        x, w = int(rng.integers(-4, W)), int(rng.integers(5, 12))
+        h = int(rng.integers(10, 34))
+        triangle(img, x, H - h, w, h, "#1e3e5a", down=False)
+        triangle(img, x + 2, H - h + 4, max(w - 4, 1), h - 4, "#2a5070", down=False)
+    for x in range(-6, W, 18):
+        x += int(rng.integers(0, 10))
+        h = int(rng.integers(10, 40))
+        triangle(img, x, 0, int(rng.integers(5, 10)), h, "#2a4e6a")
+        triangle(img, x + 1, 0, 3, h - 6, "#4a7a98")
+    rect(img, 0, 0, W, 3, "#08121e")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 140) / 40, 0, 1) * 0.5, "#081420", levels=4)
+    return img
+
+
+def gear(img, cx, cy, r, teeth, col, hub):
+    """A cog: a ring with square teeth and a hub with spokes."""
+    ys, xs = np.mgrid[0:H, 0:W]
+    d = np.sqrt((xs - cx) ** 2 + (ys - cy) ** 2)
+    a = np.arctan2(ys - cy, xs - cx)
+    tooth = (np.cos(a * teeth) > 0.2) & (d < r + 4) & (d >= r)
+    ring = (d < r) & (d >= r - 4)
+    spokes = (d < r - 4) & (np.abs(np.sin(a * 3)) < 0.18)
+    paint(img, tooth | ring | spokes, col)
+    paint(img, d < r * 0.25, hub)
+
+
+def clockwork_backdrop():
+    img = canvas(W, H, "#1a140e")
+    vgrad(img, 0, H, ["#140f0a", "#1e170f", "#261c12", "#18120c"])
+    # Riveted wall plates.
+    for y in range(0, H, 30):
+        rect(img, 0, y, W, 1, "#2a2016")
+        for x in range((y // 30) % 2 * 20, W, 40):
+            rect(img, x, y, 1, 30, "#2a2016")
+            img[min(y + 3, H - 1), min(x + 3, W - 1)] = hexc("#4a3a24")
+    # Big slow gears behind everything, warm light on them.
+    blend(img, radial(160, 80, 120, squash=0.7) * 0.35, "#4a3018", levels=4)
+    gear(img, 70, 70, 40, 10, "#3a2c1a", "#5a4424")
+    gear(img, 140, 118, 26, 8, "#44321c", "#6a5028")
+    gear(img, 258, 60, 46, 12, "#3a2c1a", "#5a4424")
+    gear(img, 206, 140, 18, 6, "#4a3820", "#7a5c2c")
+    # Pipes along the top with gauges.
+    rect(img, 0, 16, W, 5, "#5a4426")
+    rect(img, 0, 16, W, 1, "#8a6a3a")
+    for x in (40, 180, 300):
+        rect(img, x, 10, 4, 12, "#6a5030")
+        blend(img, radial(x + 2, 28, 5) * 1.5, "#c8a050", levels=2)
+        rect(img, x + 2, 26, 1, 3, "#2a1a10")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 130) / 50, 0, 1) * 0.6, "#0e0a06", levels=4)
+    return img
+
+
+def observatory_backdrop():
+    rng = np.random.default_rng(121)
+    img = canvas(W, H, "#0a0c1e")
+    vgrad(img, 0, H, ["#06081a", "#0c1028", "#141836", "#1a1c3a"])
+    # Stars and a band of galaxy dust.
+    band = np.clip(1 - np.abs(np.mgrid[0:H, 0:W][0] - np.mgrid[0:H, 0:W][1] * 0.35 - 20) / 30, 0, 1)
+    blend(img, band * noise2d(W, H, 122, 8) * 0.8, "#2a2a5a", levels=4)
+    for _ in range(110):
+        x, y = int(rng.integers(0, W)), int(rng.integers(0, H - 30))
+        img[y, x] = hexc("#e8e8ff" if rng.random() < 0.3 else "#6a70a8")
+    # The moon, close and pitted.
+    moon = radial(250, 52, 26)
+    blend(img, radial(250, 52, 50) * 0.5, "#2a3060", levels=4)
+    paint(img, moon > 0, "#d8d8e8")
+    paint(img, (moon > 0) & (noise2d(W, H, 123, 4) > 0.62), "#a8a8c0")
+    paint(img, (moon > 0) & (radial(260, 56, 26) < 0.15), "#b0b0c8")
+    # The open dome's ribs framing the sky, and a great telescope.
+    ys, xs = np.mgrid[0:H, 0:W]
+    for k in range(-3, 4):
+        rib = np.abs((xs - 160) - k * 52 - (ys - 180) * k * 0.25) < 1.5
+        paint(img, rib & (ys < 150), "#24223e")
+    for i in range(70):
+        x, y = 60 + i, 150 - int(i * 0.9)
+        rect(img, x, y, 10, 8, "#3a3a5a")
+        rect(img, x, y, 10, 1, "#5a5a80")
+    rect(img, 70, 140, 30, 12, "#2a2a44")
+    rect(img, 76, 152, 6, 28, "#2a2a44")
+    rect(img, 0, H - 26, W, 26, "#14142a")
+    rect(img, 0, H - 26, W, 1, "#2a2a4a")
+    return img
+
+
 # --- tiles ------------------------------------------------------------------
 # Each painter draws one 8x8 tile from a variant index. Top tiles sit on the top
 # row of every block; fill tiles cover the rest.
@@ -666,6 +808,71 @@ def spire_tile(top, v):
     return t
 
 
+def dunes_tile(top, v):
+    rng = np.random.default_rng(900 + v + top * 10)
+    t = brick_tile(top, v, "#c08a54", "#8a5e36", "#d8a46a", "#a87444", None, "#e8c084")
+    if top:
+        # Loose sand drifted over the stone.
+        t[0:2, :] = hexc("#e8c890")
+        t[0, :] = hexc("#f8e0a8")
+        for x in range(T):
+            if rng.random() < 0.5:
+                t[2, x] = hexc("#d8b47a")
+    return t
+
+
+def frost_tile(top, v):
+    rng = np.random.default_rng(1000 + v + top * 10)
+    t = canvas(T, T, "#5a8ab8")
+    speckle(t, rng, "#4a7aa8", 6)
+    speckle(t, rng, "#8ab8e0", 2)
+    t[(v * 2) % T, 1:4] = hexc("#a8d8f8")
+    if top:
+        # A cap of snow.
+        t[0:2, :] = hexc("#f0f8ff")
+        t[2, :] = hexc("#c8e0f4")
+        t[2, (v * 3) % T] = hexc("#f0f8ff")
+    elif v == 1:
+        for i in range(5):
+            t[1 + i, 5 - (i % 2)] = hexc("#3a6a98")
+    return t
+
+
+def clockwork_tile(top, v):
+    rng = np.random.default_rng(1100 + v + top * 10)
+    t = canvas(T, T, "#7a5a30")
+    speckle(t, rng, "#6a4c28", 6)
+    speckle(t, rng, "#8a6a3c", 3)
+    t[:, 7] = hexc("#4a3418")
+    t[7, :] = hexc("#4a3418")
+    t[1, 1] = t[1, 5] = t[5, 1] = t[5, 5] = hexc("#d8b060")
+    if top:
+        t[0, :] = hexc("#e8c070")
+        t[1, :] = hexc("#b08848")
+        t[1, 1] = t[1, 5] = hexc("#f8e0a0")
+    elif v == 2:
+        t[3, 2:5] = hexc("#3a2a14")
+    return t
+
+
+def observatory_tile(top, v):
+    rng = np.random.default_rng(1200 + v + top * 10)
+    t = canvas(T, T, "#5a5a7a")
+    speckle(t, rng, "#4a4a6a", 6)
+    speckle(t, rng, "#6a6a8e", 3)
+    # Marble veins, and the odd brass star set into the stone.
+    for i in range(T):
+        if (i + v) % 3 == 0:
+            t[i, (i * 2 + v) % T] = hexc("#7a7aa0")
+    if top:
+        t[0, :] = hexc("#b8b8d8")
+        t[1, :] = hexc("#8a8aac")
+    if v == 1:
+        t[4, 3:6] = hexc("#e0c060")
+        t[3:6, 4] = hexc("#e0c060")
+    return t
+
+
 THEMES = {
     "jungle": (jungle_backdrop, jungle_tile),
     "cave": (cave_backdrop, cave_tile),
@@ -675,6 +882,10 @@ THEMES = {
     "sky": (sky_backdrop, sky_tile),
     "mirror": (mirror_backdrop, mirror_tile),
     "spire": (spire_backdrop, spire_tile),
+    "dunes": (dunes_backdrop, dunes_tile),
+    "frost": (frost_backdrop, frost_tile),
+    "clockwork": (clockwork_backdrop, clockwork_tile),
+    "observatory": (observatory_backdrop, observatory_tile),
 }
 
 

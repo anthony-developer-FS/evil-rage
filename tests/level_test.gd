@@ -223,6 +223,114 @@ var runs := {
 			["jump", 40], ["key", "left", 306], ["key", "right", 200]],
 		"naive": [["right", 400]],
 	},
+	"room_41": {
+		# Creep up until the sinkhole slides ahead to where you would have landed,
+		# then jump it there.
+		"solve": [["right", 116], ["idle", 60], ["right", 176], ["jump", 60], ["right", 400]],
+		"naive": [["right", 130], ["jump", 60], ["right", 400]],
+	},
+	"room_42": {
+		# Every jump moves the hole. Hop on the spot to send it ahead, walk over where
+		# it was, then jump it so it goes back behind you.
+		"solve": [["jump", 10], ["idle", 60], ["right", 151], ["jump", 60], ["right", 400]],
+		"naive": [["right", 104], ["jump", 60], ["right", 400]],
+	},
+	"room_43": {
+		# Take the boots, leap before the hole notices you, and jump again in the air.
+		"solve": [["right", 100], ["jump", 24], ["hold", 3], ["jump", 40], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_44": {
+		"solve": [["jump", 10], ["idle", 60], ["right", 122], ["jump", 60], ["right", 186], ["idle", 40],
+			["right", 242], ["jump", 60], ["right", 400]],
+		"naive": [["right", 82], ["jump", 60], ["right", 400]],
+	},
+	"room_45": {
+		# Jump the first hole before it lunges. That jump sends the second one ahead.
+		"solve": [["right", 74], ["jump", 60], ["right", 242], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_46": {
+		# Stand on the mark until the frost sinks, then run before it comes back.
+		"solve": [["right", 164], ["idle", 476], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_47": {
+		# Grab the amulet, back onto the square, then run and vault the crates.
+		"solve": [["right", 124], ["left", 88], ["idle", 456], ["right", 156], ["jump", 40], ["right", 228],
+			["jump", 40], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_48": {
+		# Ignore the mark and the boots. Watch where the frost leaves a gap.
+		"solve": [["right", 212], ["idle", 490], ["right", 244], ["jump", 60], ["right", 400]],
+		"naive": [["right", 104], ["idle", 900]],
+	},
+	"room_49": {
+		"solve": [["right", 124], ["idle", 420], ["right", 194], ["jump", 40], ["right", 228], ["jump", 40],
+			["right", 260], ["jump", 40], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_50": {
+		# Hop the mimic, wait it out on the pillar, then run.
+		"solve": [["right", 98], ["jump", 60], ["right", 190], ["jump", 40], ["right", 204], ["idle", 320],
+			["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_51": {
+		# Jump over the loose plate instead of walking on it.
+		"solve": [["right", 100], ["jump", 60], ["right", 166], ["jump", 60], ["right", 400]],
+		"naive": [["right", 166], ["jump", 60], ["right", 400]],
+	},
+	"room_52": {
+		# Hop the chest, then bound stone to stone without ever stopping.
+		"solve": [["right", 36], ["jump", 12], ["right", 90], ["jump", 60], ["right", 156], ["jump", 60],
+			["right", 222], ["jump", 60], ["right", 400]],
+		"naive": [["right", 36], ["jump", 12], ["right", 90], ["jump", 60], ["right", 156], ["jump", 60],
+			["right", 214], ["idle", 60], ["right", 400]],
+	},
+	"room_53": {
+		# Wake the wall from the edge, then jump onto it.
+		"solve": [["right", 104], ["idle", 40], ["right", 112], ["jump", 60], ["right", 400]],
+		"naive": [["right", 112], ["jump", 60], ["right", 400]],
+	},
+	"room_54": {
+		"solve": [["right", 124], ["jump", 60], ["right", 182], ["jump", 60], ["right", 232], ["jump", 24], ["hold", 3],
+			["jump", 40], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_55": {
+		# Over the plate, wake the wall and climb it, then leap off the end without stopping.
+		"solve": [["right", 36], ["jump", 60], ["right", 96], ["idle", 90], ["right", 106], ["jump", 60],
+			["right", 228], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_56": {
+		# Moon boots: how long jump is held decides the height. Enough for the wall,
+		# not so much that the ceiling gets you.
+		"solve": [["right", 100], ["jump", 20], ["right", 400]],
+		"naive": [["right", 100], ["jump", 60], ["right", 400]],
+	},
+	"room_57": {
+		# Tap over the chest, tap over the pit.
+		"solve": [["right", 40], ["jump", 1], ["right", 128], ["jump", 4], ["right", 400]],
+		"naive": [["right", 128], ["jump", 4], ["right", 400]],
+	},
+	"room_58": {
+		"solve": [["right", 104], ["idle", 20], ["jump", 40], ["right", 140], ["right", 400]],
+		"naive": [["right", 104], ["idle", 20], ["jump", 60], ["right", 400]],
+	},
+	"room_59": {
+		"solve": [["right", 48], ["jump", 8], ["right", 150], ["jump", 10], ["right", 190], ["jump", 1], ["right", 236],
+			["jump", 1], ["right", 400]],
+		"naive": [["right", 48], ["jump", 60], ["right", 400]],
+	},
+	"room_60": {
+		# Hop to send the hole ahead, jump it so it goes back, climb the wall, skip the chest.
+		"solve": [["jump", 1], ["idle", 60], ["right", 140], ["jump", 10], ["hold", 80], ["jump", 22], ["right", 268],
+			["jump", 1], ["right", 400]],
+		"naive": [["right", 98], ["jump", 4], ["right", 400]],
+	},
 }
 
 var _failures := 0

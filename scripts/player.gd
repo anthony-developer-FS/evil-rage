@@ -12,6 +12,8 @@ signal landed(fall_speed: float)
 signal gravity_flipped
 ## Fires when a mirror zone swaps left and right, or swaps them back.
 signal controls_flipped
+## Fires when a shield from a treasure chest takes a hit instead of the player.
+signal shield_broken
 
 @export var tuning: MovementTuning = preload("res://resources/default_tuning.tres")
 
@@ -23,14 +25,31 @@ var gravity_sign := 1.0
 var controls_reversed := false
 ## The slow-fall zone the player is floating in, or null.
 var slow_fall: SlowFallZone
+## Multiplies the jump. Rooms with moon boots set it so a held jump reaches the
+## ceiling; a cursed chest can make it smaller.
+var jump_scale := 1.0
+## Extra jumps allowed in the air before landing again. A chest can grant one.
+var air_jumps := 0
+## Hits the player can take from spikes and traps. A chest can grant one.
+var shields := 0
 
 var _coyote_timer := 0.0
 var _buffer_timer := 0.0
 var _wall_lock_timer := 0.0
 var _wall_lock_dir := 0.0
 var _jumping := false
+var _air_jumps_left := 0
+## While positive, input is ignored: a pop-up block just shoved the player.
+var _shove_timer := 0.0
+## While positive, hits do nothing: a shield just broke.
+var _invulnerable_timer := 0.0
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
+
+
+func _ready() -> void:
+	# Traps that react to the player from anywhere in the room find them by group.
+	add_to_group(&"player")
 
 
 func _physics_process(delta: float) -> void:
@@ -40,6 +59,8 @@ func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_axis("move_left", "move_right")
 	if controls_reversed:
 		input_dir = -input_dir
+	if _shove_timer > 0.0:
+		input_dir = 0.0
 	# Launched off the floor this tick (by a spring) counts as airborne.
 	var on_floor := is_on_floor() and velocity.y * gravity_sign >= 0.0
 	var wall_dir := _get_wall_dir()
@@ -65,12 +86,28 @@ func _physics_process(delta: float) -> void:
 	_update_sprite(input_dir, wall_dir)
 
 	if Input.is_action_just_pressed("restart"):
-		die()
+		die(true)
 
 
-func die() -> void:
+## A shield soaks up the hit unless `unstoppable` is set, which falling out of the
+## room and being crushed are: no shield can put the player back on the screen.
+func die(unstoppable := false) -> void:
 	if is_dead:
 		return
+	if not unstoppable:
+		if _invulnerable_timer > 0.0:
+			return
+		if shields > 0:
+			shields -= 1
+			_invulnerable_timer = 1.0
+			# Knocked up out of the spikes, like a hop.
+			velocity.y = -tuning.jump_velocity * 0.8 * gravity_sign
+			_jumping = false
+			var blink := create_tween().set_loops(8)
+			blink.tween_property(_sprite, "modulate:a", 0.3, 0.06)
+			blink.tween_property(_sprite, "modulate:a", 1.0, 0.06)
+			shield_broken.emit()
+			return
 	is_dead = true
 	velocity = Vector2.ZERO
 	_sprite.play("death")
@@ -100,6 +137,19 @@ func set_gravity_inverted(inverted: bool) -> void:
 	gravity_flipped.emit()
 
 
+## A pop-up block hit the player: send them flying and take the controls away
+## for a moment, so they cannot just walk it off.
+func shove(push: Vector2, seconds := 0.3) -> void:
+	velocity = Vector2(push.x, push.y * gravity_sign)
+	_shove_timer = seconds
+	_jumping = false
+	_coyote_timer = 0.0
+
+
+func is_invulnerable() -> bool:
+	return _invulnerable_timer > 0.0
+
+
 func set_controls_reversed(reversed: bool) -> void:
 	if reversed == controls_reversed:
 		return
@@ -111,10 +161,13 @@ func _tick_timers(delta: float, on_floor: bool) -> void:
 	if on_floor:
 		_coyote_timer = tuning.coyote_time
 		_jumping = false
+		_air_jumps_left = air_jumps
 	else:
 		_coyote_timer = maxf(_coyote_timer - delta, 0.0)
 	_buffer_timer = maxf(_buffer_timer - delta, 0.0)
 	_wall_lock_timer = maxf(_wall_lock_timer - delta, 0.0)
+	_shove_timer = maxf(_shove_timer - delta, 0.0)
+	_invulnerable_timer = maxf(_invulnerable_timer - delta, 0.0)
 
 
 func _apply_horizontal(input_dir: float, on_floor: bool, delta: float) -> void:
@@ -154,16 +207,20 @@ func _apply_gravity(input_dir: float, wall_dir: float, on_floor: bool, delta: fl
 
 
 func _try_jump(wall_dir: float, on_floor: bool) -> void:
-	if _buffer_timer <= 0.0:
+	if _buffer_timer <= 0.0 or _shove_timer > 0.0:
 		return
 	if on_floor or _coyote_timer > 0.0:
-		velocity.y = -tuning.jump_velocity * gravity_sign
+		velocity.y = -tuning.jump_velocity * jump_scale * gravity_sign
 		jumped.emit()
 	elif wall_dir != 0.0:
 		velocity = Vector2(-wall_dir * tuning.wall_jump_velocity.x, -tuning.wall_jump_velocity.y * gravity_sign)
 		_wall_lock_timer = tuning.wall_jump_lock
 		_wall_lock_dir = -wall_dir
 		wall_jumped.emit()
+	elif _air_jumps_left > 0:
+		_air_jumps_left -= 1
+		velocity.y = -tuning.jump_velocity * jump_scale * gravity_sign
+		jumped.emit()
 	else:
 		return
 	_buffer_timer = 0.0

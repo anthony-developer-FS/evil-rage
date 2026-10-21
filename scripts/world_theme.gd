@@ -5,7 +5,7 @@ extends Resource
 ## little things that drift around. Set a room's `world_theme` and its blocks,
 ## spikes, backdrop and title pick it up. The art comes from tools/make_themes.py.
 
-enum Ambient { NONE, FIREFLIES, DRIPS, DUST, EMBERS, WIND, SPARKLES }
+enum Ambient { NONE, FIREFLIES, DRIPS, DUST, EMBERS, WIND, SPARKLES, SNOW }
 
 ## Shown on the world's banner and before each room title, e.g. "The Jungle".
 @export var display_name := ""

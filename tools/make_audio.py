@@ -257,6 +257,68 @@ def sfx_mirror():
     return shimmer * env(d, 0.002, 1.5)[::-1] * 0.35
 
 
+def sfx_void_shift():
+    # Sand pouring away: a hiss that slides down, with a soft collapse under it.
+    gen = np.random.default_rng(2201)
+    d = 0.4
+    t = t_axis(d)
+    hiss = lowpass(noise(d, hold=2, gen=gen), 1800) * env(d, 0.02, 1.2) * (0.7 + 0.3 * np.sin(2 * np.pi * 23 * t))
+    slump = lowpass(noise(d, hold=24, gen=gen), 180) * env(d, 0.01, 1.6)
+    return mix(hiss * 0.6, slump)
+
+
+def sfx_frost():
+    # Ice crackling as it grows: sparse bright ticks over a cold whistle.
+    gen = np.random.default_rng(2301)
+    d = 0.5
+    t = t_axis(d)
+    ticks = np.zeros(len(t))
+    for start in gen.uniform(0, d - 0.02, 14):
+        i = int(start * RATE)
+        n = int(0.006 * RATE)
+        ticks[i:i + n] += noise(0.006, gen=gen)[:n] * np.linspace(1, 0, n)
+    whistle = sine(sweep(1800, 2400, d), d) * env(d, 0.05, 1.0) * 0.15
+    return mix(ticks, whistle)
+
+
+def sfx_pop_block():
+    # A heavy block punching out of the floor: thump, then a springy clang.
+    gen = np.random.default_rng(2401)
+    thump = sine(sweep(140, 50, 0.12), 0.12) * env(0.12, 0.002, 2.0)
+    crack = lowpass(noise(0.05, gen=gen), 3000) * env(0.05, 0.001, 3.0) * 0.6
+    clang = mix(square(sweep(330, 300, 0.2), 0.2, 0.3), triangle(sweep(495, 450, 0.2), 0.2)) * env(0.2, 0.002, 2.5) * 0.3
+    return mix(thump, crack, clang)
+
+
+def sfx_chest():
+    # Lid creak, then a bright little treasure arpeggio.
+    gen = np.random.default_rng(2501)
+    d = 0.15
+    creak = lowpass(square(sweep(180, 260, d), d, 0.2), 1500) * env(d, 0.01, 1.0) * 0.3
+    creak += lowpass(noise(d, hold=4, gen=gen), 900) * env(d, 0.01, 1.0) * 0.2
+    notes = []
+    for f, n in [(1046.5, 0.06), (1318.5, 0.06), (1568.0, 0.06), (2093.0, 0.2)]:
+        notes.append(mix(square(f, n, 0.25) * 0.4, sine(f, n)) * env(n, 0.002, 1.5))
+    return cat(creak, *notes) * 0.6
+
+
+def sfx_curse():
+    # The treasure turning on you: a sour detuned slide down.
+    d = 0.6
+    t = t_axis(d)
+    f = sweep(520, 130, d, 0.8)
+    tone = mix(square(f, d, 0.4) * 0.3, square(f * 1.06, d, 0.4) * 0.3, triangle(f / 2, d))
+    return lowpass(tone, 2200) * env(d, 0.01, 1.2) * (0.75 + 0.25 * np.sin(2 * np.pi * 7 * t))
+
+
+def sfx_shield():
+    # The amulet cracking as it takes the hit: a glassy ping and a shatter.
+    gen = np.random.default_rng(2601)
+    ping = mix(sine(1760, 0.3), sine(2637, 0.3) * 0.5) * env(0.3, 0.001, 2.5)
+    shatter = lowpass(noise(0.18, gen=gen), 6000) * env(0.18, 0.001, 2.0) * 0.5
+    return mix(ping, shatter) * 0.7
+
+
 def sfx_taunt():
     # Two-note "nyah nyah" played when a taunt appears. Quiet, it sits under the death.
     parts = []

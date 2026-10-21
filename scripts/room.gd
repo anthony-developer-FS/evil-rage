@@ -10,6 +10,9 @@ const HUD := preload("res://scenes/objects/hud.tscn")
 ## The explorer world this room belongs to. Blocks, spikes, the backdrop and the
 ## title all take their look from it. Leave empty for the plain grey look.
 @export var world_theme: WorldTheme
+## Multiplies the player's jump. Moon boot rooms set about 1.9, so a held jump
+## reaches the ceiling and only a quick tap stays low.
+@export var jump_scale := 1.0
 
 @onready var player: Player = $Player
 
@@ -31,6 +34,7 @@ func _ready() -> void:
 	Game.enter_room(scene_file_path)
 	Game.enter_world(world_theme)
 	player.global_position = $Spawn.global_position
+	player.jump_scale = jump_scale
 	player.died.connect(_on_player_died)
 	$Goal.reached.connect(_on_goal_reached)
 
@@ -40,7 +44,7 @@ func _process(_delta: float) -> void:
 	# off the top while gravity is upside down.
 	var y := player.global_position.y
 	if y > get_viewport_rect().size.y + 32 or (player.gravity_sign < 0.0 and y < -32):
-		player.die()
+		player.die(true)
 
 
 func _on_player_died() -> void:

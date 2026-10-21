@@ -73,4 +73,4 @@ func _start_falling() -> void:
 
 func _on_crush(body: Node2D) -> void:
 	if _falling and body is Player:
-		body.die()
+		body.die(true)
