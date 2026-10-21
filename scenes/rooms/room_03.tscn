@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/room.gd" id="room"]
 [ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
-[ext_resource type="PackedScene" path="res://scenes/objects/hud.tscn" id="hud"]
 [ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
 [ext_resource type="PackedScene" path="res://scenes/trolls/runaway_goal.tscn" id="runaway"]
 
@@ -54,5 +53,3 @@ flee_points = PackedVector2Array(296, 160, 300, 96)
 
 [node name="Player" parent="." instance=ExtResource("player")]
 position = Vector2(24, 160)
-
-[node name="Hud" parent="." instance=ExtResource("hud")]
