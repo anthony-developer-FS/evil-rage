@@ -21,6 +21,8 @@ The world is drawn into a 320x180 viewport and scaled up by whole numbers, so pi
 | Path | What it is |
 | --- | --- |
 | `scripts/player.gd` | Kinematic controller: run, variable jump, coyote time, jump buffer, wall slide and wall jump |
+| `art/player/explorer.svg` | Explorer sprite sheet, 16x16 frames: idle, run, jump, fall, wall slide, death |
+| `tools/make_explorer.py` | Generates the explorer sheet and `resources/explorer_frames.tres` from ASCII parts. Edit and rerun it to change the art |
 | `resources/default_tuning.tres` | Every movement number. Edit it in the inspector to retune feel |
 | `scripts/game.gd` | Autoload that keeps death counters and taunts across room reloads |
 | `scenes/main.tscn` | Entry point: 320x180 world viewport plus a native-resolution HUD |
