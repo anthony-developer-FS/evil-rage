@@ -8,7 +8,11 @@ A punishing 2D precision platformer where the levels lie to you. Built with Godo
 2. Open Godot, choose **Import**, and select this folder's `project.godot`.
 3. Press F5. Room 1 of the prototype level loads. Beat all six rooms.
 
-Controls: A/D or arrows to move, Space/K/Up to jump, R to restart. Gamepad works too (stick or d-pad, A to jump).
+Controls: A/D or arrows to move, Space/K/Up to jump, R to restart, F11 or Alt+Enter to toggle fullscreen. Gamepad works too (stick or d-pad, A to jump).
+
+## Resolution
+
+The game is drawn at 320x180 and scaled up by whole numbers, so pixels stay sharp: 6x at 1080p, 8x at 1440p and 12x at 4K. It starts fullscreen at the monitor's native resolution. Windowed mode opens at 1280x720 and can be resized.
 
 ## Layout
 
