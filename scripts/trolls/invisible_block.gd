@@ -4,6 +4,9 @@ extends Block
 ## Not there until the player jumps into it from below. Then it appears and
 ## bonks them, usually into whatever is underneath.
 
+## Fires when it appears. Audio listens for it.
+signal triggered
+
 
 func _ready() -> void:
 	super()
@@ -26,6 +29,7 @@ func _on_hit(body: Node2D) -> void:
 		return
 	visible = true
 	$CollisionShape2D.set_deferred("disabled", false)
+	triggered.emit()
 	# Push the player out under the block and kill their upward speed.
 	body.global_position.y = global_position.y + size.y + 14.0
 	body.velocity.y = 0.0

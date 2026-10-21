@@ -3,6 +3,9 @@ class_name FakeFloor
 extends Block
 ## Looks exactly like a normal block. Vanishes once the player stands on it.
 
+## Fires when the trap springs. Audio listens for it.
+signal triggered
+
 ## Seconds between first touch and collapse. 0 means it drops out instantly.
 @export var delay := 0.0
 
@@ -28,3 +31,4 @@ func _on_touched(_body: Node2D) -> void:
 		await get_tree().create_timer(delay).timeout
 	$CollisionShape2D.set_deferred("disabled", true)
 	hide()
+	triggered.emit()
