@@ -36,8 +36,10 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	# Falling off the bottom of the screen counts as a death.
-	if player.global_position.y > get_viewport_rect().size.y + 32:
+	# Falling off the bottom of the screen counts as a death, and so does falling
+	# off the top while gravity is upside down.
+	var y := player.global_position.y
+	if y > get_viewport_rect().size.y + 32 or (player.gravity_sign < 0.0 and y < -32):
 		player.die()
 
 

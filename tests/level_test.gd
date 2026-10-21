@@ -10,7 +10,12 @@ extends Node
 ## crosses x. ["jump", frames] holds jump for that many physics frames, keeping the
 ## current direction, or switches to the direction given as a third element, e.g.
 ## ["jump", 60, "left"]. ["hold", frames] keeps the direction. ["idle", frames] lets go.
+## ["key", "left", x] holds that key until the player crosses x from either side,
+## for when mirrored controls make the left key walk right.
 ## After the script ends the current direction is held until the run resolves.
+##
+## Rooms that change after a death also get "retry_solve" and "retry_naive" runs,
+## played as if the player had already died once in the room.
 
 ## Room 9: walk into the shaft, then wall jump between its walls until the top.
 const SHAFT_CLIMB := [
@@ -112,6 +117,112 @@ var runs := {
 		"solve": [["right", 30], ["jump", 75], ["jump", 90, "left"], ["left", 0]],
 		"naive": [["right", 400]],
 	},
+	"room_21": {
+		# Wait for the lift to come back down, step on, and lean on the cliff until it is level.
+		"solve": [["right", 100], ["idle", 300], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_22": {
+		# Poke the trigger, back off, then run under while the press is up.
+		"solve": [["right", 120], ["left", 100], ["idle", 100], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_23": {
+		"solve": [["right", 70], ["idle", 60], ["right", 88], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_24": {
+		# Let each press slam before going under it, waiting in the gaps between them.
+		"solve": [["right", 70], ["idle", 70], ["right", 140], ["idle", 60], ["right", 212], ["idle", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_25": {
+		"solve": [["right", 88], ["jump", 60], ["right", 240], ["jump", 40], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_26": {
+		"solve": [["right", 76], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_27": {
+		# Step off, hang in the gap until under the first shelf, then drift right.
+		"solve": [["right", 60], ["idle", 150], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_28": {
+		# Hop stone to stone without stopping, and skip the narrow one.
+		"solve": [["right", 42], ["jump", 20], ["right", 82], ["jump", 20], ["right", 122], ["jump", 14],
+			["right", 178], ["jump", 20], ["right", 220], ["jump", 20], ["right", 236], ["jump", 20], ["right", 250], ["jump", 120], ["right", 400]],
+		"naive": [["right", 42], ["jump", 20], ["right", 82], ["jump", 20], ["right", 124], ["jump", 8],
+			["right", 400]],
+	},
+	"room_29": {
+		"solve": [["right", 92], ["jump", 8], ["right", 400]],
+		"naive": [["right", 92], ["jump", 120], ["right", 400]],
+	},
+	"room_30": {
+		# Board the ferry before it leaves, chase the exit off the island, jump into the
+		# draft and float right past the crumbly lip of the rock.
+		"solve": [["right", 80], ["idle", 300], ["right", 190], ["jump", 120], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_31": {
+		# Jump the pit and swap to left the moment the mirror flips you.
+		"solve": [["right", 112], ["jump", 30], ["right", 143], ["key", "left", 400]],
+		"naive": [["right", 112], ["jump", 60], ["right", 400]],
+	},
+	"room_32": {
+		# Walk until the hidden mirror turns you round, then swap keys before the spikes.
+		"solve": [["right", 157], ["key", "left", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_33": {
+		# First try: the patch over the pit is rotten, so jump it. After a death it is
+		# solid, and jumping it lands on spikes instead.
+		"solve": [["right", 150], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+		"retry_solve": [["right", 400]],
+		"retry_naive": [["right", 150], ["jump", 60], ["right", 400]],
+	},
+	"room_34": {
+		# Swap to left over the first pit, back to right over the second, and to left
+		# again when the hidden one turns you round at the end.
+		"solve": [["right", 88], ["jump", 30], ["right", 112], ["key", "left", 196], ["jump", 30],
+			["key", "left", 224], ["right", 273], ["key", "left", 400]],
+		"naive": [["right", 88], ["jump", 30], ["right", 400]],
+	},
+	"room_35": {
+		"solve": [["key", "left", 136], ["jump", 60], ["key", "left", 400]],
+		"naive": [["right", 400]],
+		"retry_solve": [["right", 136], ["jump", 14], ["key", "left", 400]],
+		"retry_naive": [["key", "left", 136], ["jump", 60], ["key", "left", 400]],
+	},
+	"room_36": {
+		# On the ceiling a jump goes down: hop the hole in it.
+		"solve": [["right", 170], ["jump", 30], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_37": {
+		"solve": [["right", 96], ["jump", 30], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_38": {
+		# A short hop stays under the hidden field.
+		"solve": [["right", 112], ["jump", 8], ["right", 400]],
+		"naive": [["right", 112], ["jump", 60], ["right", 400]],
+	},
+	"room_39": {
+		# Let each piston stab the ceiling before walking over it.
+		"solve": [["right", 96], ["idle", 72], ["right", 168], ["idle", 36], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_40": {
+		# Ride the lift, jump into the draft, swap keys at the mirror, hop the biting
+		# door into the flip, then walk back along the ceiling to the real exit.
+		"solve": [["right", 80], ["idle", 300], ["right", 136], ["jump", 60], ["right", 200], ["key", "left", 264],
+			["jump", 40], ["key", "left", 306], ["key", "right", 200]],
+		"naive": [["right", 400]],
+	},
 }
 
 var _failures := 0
@@ -122,11 +233,12 @@ func _ready() -> void:
 	for room_name in runs:
 		if not only.is_empty() and not room_name in only:
 			continue
-		for kind in ["solve", "naive"]:
-			if OS.get_environment("LEVEL_KIND") not in ["", kind]:
+		for kind: String in runs[room_name]:
+			if OS.get_environment("LEVEL_KIND") not in ["", kind, kind.trim_prefix("retry_")]:
 				continue
-			var result: String = await _play(room_name, runs[room_name][kind])
-			var ok: bool = (result == "goal") == (kind == "solve")
+			var deaths := 1 if kind.begins_with("retry_") else 0
+			var result: String = await _play(room_name, runs[room_name][kind], deaths)
+			var ok: bool = (result == "goal") == kind.ends_with("solve")
 			print("%s  %s %s -> %s" % ["ok  " if ok else "FAIL", room_name, kind, result])
 			if not ok:
 				_failures += 1
@@ -134,8 +246,13 @@ func _ready() -> void:
 	get_tree().quit(0 if _failures == 0 else 1)
 
 
-func _play(room_name: String, script: Array) -> String:
-	var room: Room = load("res://scenes/rooms/%s.tscn" % room_name).instantiate()
+func _play(room_name: String, script: Array, deaths := 0) -> String:
+	var path := "res://scenes/rooms/%s.tscn" % room_name
+	# Pretend the player is already in this room with that many deaths, so
+	# retry variants pick their layout and the room keeps the count.
+	Game.enter_room(path)
+	Game.room_deaths = deaths
+	var room: Room = load(path).instantiate()
 	# Keep the run inside this test: no scene changes, no reloads.
 	room.get_node("Goal").next_room = ""
 	add_child(room)
@@ -161,6 +278,14 @@ func _play(room_name: String, script: Array) -> String:
 				for i in 600:
 					var x := room.player.global_position.x
 					if (dir == "right" and x >= cmd[1]) or (dir == "left" and x <= cmd[1]) or state.result != "":
+						break
+					await get_tree().physics_frame
+			"key":
+				_set_dir(cmd[1])
+				dir = cmd[1]
+				var was_left: bool = room.player.global_position.x < cmd[2]
+				for i in 600:
+					if (room.player.global_position.x < cmd[2]) != was_left or state.result != "":
 						break
 					await get_tree().physics_frame
 			"jump":

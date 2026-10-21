@@ -3,7 +3,8 @@ class_name Backdrop
 extends Node2D
 ## Paints the room's world theme behind everything, plus a few ambient motes:
 ## fireflies in the jungle, drips in the caves, dust in the temple, embers in the
-## castle. Unthemed rooms get the old flat dark fill. Purely visual.
+## castle, wind in the sky ruins, sparkles in the mirror halls. Unthemed rooms get
+## the old flat dark fill. Purely visual.
 
 const SIZE := Vector2(320, 180)
 const FALLBACK := Color(0.09, 0.09, 0.12)
@@ -48,9 +49,13 @@ func _draw() -> void:
 		var a := sin(clampf(m.age / m.life, 0.0, 1.0) * PI)
 		if _theme.ambient == WorldTheme.Ambient.FIREFLIES:
 			a *= 0.5 + 0.5 * sin(m.age * 5.0 + m.seed)
+		elif _theme.ambient == WorldTheme.Ambient.SPARKLES:
+			a *= maxf(sin(m.age * 7.0 + m.seed), 0.0)
 		var c := _theme.ambient_color
 		c.a *= a
-		draw_rect(Rect2(m.pos.floor(), Vector2.ONE), c)
+		# Wind leaves short streaks; everything else is a single pixel.
+		var streak := Vector2(4, 1) if _theme.ambient == WorldTheme.Ambient.WIND else Vector2.ONE
+		draw_rect(Rect2(m.pos.floor(), streak), c)
 
 
 func _spawn(anywhere_in_life: bool) -> Dictionary:
@@ -71,6 +76,11 @@ func _spawn(anywhere_in_life: bool) -> Dictionary:
 		WorldTheme.Ambient.EMBERS:
 			vel = Vector2(_rng.randf_range(-3, 3), _rng.randf_range(-16, -8))
 			life = _rng.randf_range(0.8, 1.8)
+		WorldTheme.Ambient.WIND:
+			vel = Vector2(_rng.randf_range(40, 70), _rng.randf_range(-2, 2))
+			life = _rng.randf_range(1.0, 2.5)
+		WorldTheme.Ambient.SPARKLES:
+			life = _rng.randf_range(1.5, 3.0)
 	# Start the first batch partway through their lives so the room doesn't pulse.
 	var age := _rng.randf_range(0, life) if anywhere_in_life else 0.0
 	pos += vel * age

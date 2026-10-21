@@ -26,6 +26,9 @@ const SFX := {
 	&"ui_tick": preload("res://assets/audio/sfx/ui_tick.wav"),
 	&"dart": preload("res://assets/audio/sfx/dart.wav"),
 	&"secret": preload("res://assets/audio/sfx/secret.wav"),
+	&"grind": preload("res://assets/audio/sfx/grind.wav"),
+	&"gravity": preload("res://assets/audio/sfx/gravity.wav"),
+	&"mirror": preload("res://assets/audio/sfx/mirror.wav"),
 }
 const MUSIC := preload("res://assets/audio/music/theme.ogg")
 
@@ -40,6 +43,9 @@ const TRAP_SOUNDS := {
 	&"DecoyGoal": &"pop_spikes",
 	&"DartTrap": &"dart",
 	&"FakeWall": &"secret",
+	&"MovingWall": &"grind",
+	&"GravityField": &"gravity",
+	&"MirrorZone": &"mirror",
 }
 ## Sounds that get a little random pitch so repeats don't sound robotic.
 const JITTER := [&"jump", &"wall_jump", &"land"]

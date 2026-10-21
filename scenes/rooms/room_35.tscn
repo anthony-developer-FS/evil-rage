@@ -1,0 +1,86 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/mirror.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/moving_wall.tscn" id="mover"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/retry_variant.tscn" id="retry"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/mirror_zone.tscn" id="mirror"]
+
+[node name="Room35" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "35. Hall of mirrors"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="FloorLeft" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(144, 20)
+
+[node name="PitSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(144, 168)
+size = Vector2(40, 8)
+
+[node name="PitFloor" parent="." instance=ExtResource("block")]
+position = Vector2(144, 176)
+size = Vector2(40, 4)
+
+[node name="FloorRight" parent="." instance=ExtResource("block")]
+position = Vector2(184, 160)
+size = Vector2(136, 20)
+
+[node name="Wall" parent="." instance=ExtResource("mover")]
+position = Vector2(-48, -64)
+size = Vector2(48, 244)
+travel = Vector2(280, 0)
+duration = 5.5
+spikes = 4
+delay = 0.6
+
+[node name="FirstTry" parent="." instance=ExtResource("retry")]
+max_deaths = 0
+
+[node name="GlassAtStart" parent="FirstTry" instance=ExtResource("mirror")]
+position = Vector2(8, 120)
+size = Vector2(32, 40)
+
+[node name="Retry" parent="." instance=ExtResource("retry")]
+min_deaths = 1
+
+[node name="GlassOverPit" parent="Retry" instance=ExtResource("mirror")]
+position = Vector2(152, 96)
+size = Vector2(8, 50)
+concealed = true
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(296, 160)
+next_room = "res://scenes/rooms/room_36.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

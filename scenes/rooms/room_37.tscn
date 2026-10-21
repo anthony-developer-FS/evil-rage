@@ -1,0 +1,85 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/spire.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/gravity_field.tscn" id="gravity"]
+
+[node name="Room37" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "37. Flip flop"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(320, 20)
+
+[node name="Ceiling" parent="." instance=ExtResource("block")]
+position = Vector2(0, -64)
+size = Vector2(320, 104)
+
+[node name="FloorSpikesA" parent="." instance=ExtResource("hazard")]
+position = Vector2(72, 152)
+size = Vector2(72, 8)
+
+[node name="Stalactite" parent="." instance=ExtResource("hazard")]
+position = Vector2(104, 40)
+size = Vector2(16, 8)
+pointing = Vector2(0, 1)
+
+[node name="CeilingSpikesB" parent="." instance=ExtResource("hazard")]
+position = Vector2(176, 40)
+size = Vector2(48, 8)
+pointing = Vector2(0, 1)
+
+[node name="FloorSpikesC" parent="." instance=ExtResource("hazard")]
+position = Vector2(248, 152)
+size = Vector2(72, 8)
+
+[node name="Up1" parent="." instance=ExtResource("gravity")]
+position = Vector2(40, 40)
+size = Vector2(8, 120)
+
+[node name="Down" parent="." instance=ExtResource("gravity")]
+position = Vector2(152, 40)
+size = Vector2(8, 120)
+inverted = false
+
+[node name="Up2" parent="." instance=ExtResource("gravity")]
+position = Vector2(232, 40)
+size = Vector2(8, 120)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(296, 40)
+scale = Vector2(1, -1)
+next_room = "res://scenes/rooms/room_38.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)
