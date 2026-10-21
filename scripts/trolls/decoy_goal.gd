@@ -3,6 +3,9 @@ class_name DecoyGoal
 extends Goal
 ## Looks exactly like the exit. Bites.
 
+## Fires when it bites. Audio listens for it.
+signal triggered
+
 var _bit := false
 
 
@@ -24,4 +27,5 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	_bit = true
 	queue_redraw()
+	triggered.emit()
 	body.die()

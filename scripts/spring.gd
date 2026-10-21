@@ -4,6 +4,9 @@ extends Area2D
 ## Bounce pad. Sits on top of the floor and launches the player on touch. Hold jump
 ## for the full bounce, let go for a short one.
 
+## Fires on every bounce. Audio listens for it.
+signal triggered
+
 @export var size := Vector2(16, 4):
 	set(value):
 		size = value
@@ -41,3 +44,4 @@ func _draw() -> void:
 func _on_body_entered(body: Node2D) -> void:
 	if body is Player and not body.is_dead and body.velocity.y >= 0.0:
 		body.launch(power)
+		triggered.emit()
