@@ -1,0 +1,63 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hud.tscn" id="hud"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/falling_ceiling.tscn" id="ceiling"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+
+[node name="Room05" type="Node2D"]
+script = ExtResource("room")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 320.0
+offset_bottom = 180.0
+color = Color(0.09, 0.09, 0.12, 1)
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "5. Look up"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 244)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 244)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(320, 20)
+
+[node name="CeilingLeft" parent="." instance=ExtResource("block")]
+position = Vector2(0, 88)
+size = Vector2(144, 16)
+
+[node name="Crusher" parent="." instance=ExtResource("ceiling")]
+position = Vector2(144, 88)
+size = Vector2(32, 16)
+trigger_depth = 56.0
+
+[node name="CeilingRight" parent="." instance=ExtResource("block")]
+position = Vector2(176, 88)
+size = Vector2(144, 16)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(296, 160)
+next_room = "res://scenes/rooms/room_06.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)
+
+[node name="Hud" parent="." instance=ExtResource("hud")]
