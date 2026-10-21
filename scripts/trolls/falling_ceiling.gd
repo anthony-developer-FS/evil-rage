@@ -4,6 +4,10 @@ extends Block
 ## A ceiling chunk that drops when the player walks under it. Crushes on contact,
 ## then becomes a normal block where it lands.
 
+## Fires when it starts to fall, and `landed` when it hits the floor. Audio listens.
+signal triggered
+signal landed
+
 @export var gravity := 1400.0
 @export var max_speed := 400.0
 ## How far below the block the trigger reaches.
@@ -24,7 +28,7 @@ func _ready() -> void:
 	# and the kill zone decides what happens to them.
 	collision_mask = 1
 	Zone.make(self, Rect2(0, size.y, size.x, trigger_depth)).body_entered.connect(
-		func(_body: Node2D) -> void: _falling = true, CONNECT_ONE_SHOT)
+		_start_falling.unbind(1), CONNECT_ONE_SHOT)
 	var kill := Zone.make(self, Rect2(1, size.y - 2, size.x - 2, 3))
 	kill.body_entered.connect(_on_crush)
 
@@ -46,9 +50,15 @@ func _physics_process(delta: float) -> void:
 		position.y = roundf(position.y)
 		_falling = false
 		set_physics_process(false)
+		landed.emit()
 	else:
 		# Scraping a neighbouring ceiling block on the way down: keep falling.
 		position += hit.get_remainder()
+
+
+func _start_falling() -> void:
+	_falling = true
+	triggered.emit()
 
 
 func _on_crush(body: Node2D) -> void:

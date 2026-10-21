@@ -1,0 +1,183 @@
+[gd_resource type="SpriteFrames" load_steps=23 format=3]
+
+[ext_resource type="Texture2D" path="res://art/player/explorer.svg" id="1"]
+
+[sub_resource type="AtlasTexture" id="idle_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="idle_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="idle_2"]
+atlas = ExtResource("1")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="idle_3"]
+atlas = ExtResource("1")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="run_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="run_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="run_2"]
+atlas = ExtResource("1")
+region = Rect2(32, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="run_3"]
+atlas = ExtResource("1")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="run_4"]
+atlas = ExtResource("1")
+region = Rect2(64, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="run_5"]
+atlas = ExtResource("1")
+region = Rect2(80, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="jump_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="jump_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 32, 16, 16)
+
+[sub_resource type="AtlasTexture" id="fall_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 48, 16, 16)
+
+[sub_resource type="AtlasTexture" id="fall_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 48, 16, 16)
+
+[sub_resource type="AtlasTexture" id="wall_slide_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="wall_slide_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 64, 16, 16)
+
+[sub_resource type="AtlasTexture" id="death_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="death_1"]
+atlas = ExtResource("1")
+region = Rect2(16, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="death_2"]
+atlas = ExtResource("1")
+region = Rect2(32, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="death_3"]
+atlas = ExtResource("1")
+region = Rect2(48, 80, 16, 16)
+
+[sub_resource type="AtlasTexture" id="death_4"]
+atlas = ExtResource("1")
+region = Rect2(64, 80, 16, 16)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("idle_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("idle_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("idle_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("idle_3")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 4.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("run_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("run_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("run_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("run_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("run_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("run_5")
+}],
+"loop": true,
+"name": &"run",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("jump_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("jump_1")
+}],
+"loop": true,
+"name": &"jump",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("fall_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("fall_1")
+}],
+"loop": true,
+"name": &"fall",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("wall_slide_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("wall_slide_1")
+}],
+"loop": true,
+"name": &"wall_slide",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("death_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("death_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("death_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("death_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("death_4")
+}],
+"loop": false,
+"name": &"death",
+"speed": 20.0
+}]

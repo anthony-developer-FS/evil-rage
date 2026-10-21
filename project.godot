@@ -11,6 +11,7 @@ config/features=PackedStringArray("4.5")
 [autoload]
 
 Game="*res://scripts/game.gd"
+Audio="*res://scripts/audio.gd"
 
 [display]
 
@@ -43,6 +44,19 @@ toggle_fullscreen={
 restart={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":82), Object(InputEventJoypadButton,"button_index":4)]
+}
+
+volume_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":61), Object(InputEventKey,"physical_keycode":4194437)]
+}
+volume_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":45), Object(InputEventKey,"physical_keycode":4194435)]
+}
+toggle_music={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":77)]
 }
 
 [physics]

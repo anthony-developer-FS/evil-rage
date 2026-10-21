@@ -3,6 +3,9 @@ class_name PopSpikes
 extends Hazard
 ## Spikes hidden in the floor that shoot up when the player enters the trigger.
 
+## Fires when the trap springs. Audio listens for it.
+signal triggered
+
 ## Trigger area, relative to the spikes' top-left corner.
 @export var trigger := Rect2(-24, -32, 80, 40):
 	set(value):
@@ -28,6 +31,7 @@ func _draw() -> void:
 
 func _pop(_body: Node2D) -> void:
 	visible = true
+	triggered.emit()
 	set_deferred("monitoring", true)
 	# Catch a player already standing on the spot when they pop.
 	await get_tree().physics_frame
