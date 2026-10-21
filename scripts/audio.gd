@@ -29,6 +29,12 @@ const SFX := {
 	&"grind": preload("res://assets/audio/sfx/grind.wav"),
 	&"gravity": preload("res://assets/audio/sfx/gravity.wav"),
 	&"mirror": preload("res://assets/audio/sfx/mirror.wav"),
+	&"void_shift": preload("res://assets/audio/sfx/void_shift.wav"),
+	&"frost": preload("res://assets/audio/sfx/frost.wav"),
+	&"pop_block": preload("res://assets/audio/sfx/pop_block.wav"),
+	&"chest": preload("res://assets/audio/sfx/chest.wav"),
+	&"curse": preload("res://assets/audio/sfx/curse.wav"),
+	&"shield": preload("res://assets/audio/sfx/shield.wav"),
 }
 const MUSIC := preload("res://assets/audio/music/theme.ogg")
 
@@ -46,6 +52,10 @@ const TRAP_SOUNDS := {
 	&"MovingWall": &"grind",
 	&"GravityField": &"gravity",
 	&"MirrorZone": &"mirror",
+	&"ShiftingVoid": &"void_shift",
+	&"CreepingSpikes": &"frost",
+	&"PopBlock": &"pop_block",
+	&"TreasureChest": &"chest",
 }
 ## Sounds that get a little random pitch so repeats don't sound robotic.
 const JITTER := [&"jump", &"wall_jump", &"land"]
@@ -130,6 +140,7 @@ func _on_node_added(node: Node) -> void:
 		node.wall_jumped.connect(play.bind(&"wall_jump"))
 		node.landed.connect(_on_landed)
 		node.died.connect(_on_died)
+		node.shield_broken.connect(play.bind(&"shield"))
 		if _respawn_pending:
 			_respawn_pending = false
 			play(&"respawn")
@@ -141,6 +152,10 @@ func _on_node_added(node: Node) -> void:
 		node.triggered.connect(play.bind(TRAP_SOUNDS[script.get_global_name()]))
 	if node is FallingCeiling:
 		node.landed.connect(play.bind(&"ceiling_thud"))
+	if node is TreasureChest:
+		node.cursed.connect(_play_later.bind(&"curse", 0.3))
+	if node is CreepingSpikes:
+		node.retracted.connect(play.bind(&"frost"))
 
 
 func _on_landed(fall_speed: float) -> void:

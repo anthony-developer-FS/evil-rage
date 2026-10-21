@@ -19,6 +19,10 @@ const FAKE_WALL := preload("res://scenes/trolls/fake_wall.tscn")
 const MOVING_WALL := preload("res://scenes/trolls/moving_wall.tscn")
 const GRAVITY_FIELD := preload("res://scenes/trolls/gravity_field.tscn")
 const MIRROR_ZONE := preload("res://scenes/trolls/mirror_zone.tscn")
+const SHIFTING_VOID := preload("res://scenes/trolls/shifting_void.tscn")
+const CREEPING_SPIKES := preload("res://scenes/trolls/creeping_spikes.tscn")
+const POP_BLOCK := preload("res://scenes/trolls/pop_block.tscn")
+const CHEST := preload("res://scenes/trolls/treasure_chest.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -46,6 +50,12 @@ func _ready() -> void:
 	await _run("moving wall grinds when triggered", _test_moving_wall)
 	await _run("gravity flip plays", _test_gravity_field)
 	await _run("mirror plays once per swap", _test_mirror_zone)
+	await _run("shifting void hisses when it slides", _test_shifting_void)
+	await _run("creeping spikes crackle as they creep and as they sink", _test_creeping_spikes)
+	await _run("pop block clangs", _test_pop_block)
+	await _run("good chest chimes", _test_chest_good)
+	await _run("bad chest chimes, then the curse", _test_chest_bad)
+	await _run("amulet shatters when it takes a hit", _test_shield)
 	await _run("volume changes apply to the bus", _test_volume)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
@@ -261,3 +271,64 @@ func _test_mirror_zone() -> bool:
 	_player.position = Vector2(40, 159)
 	await _frames(10)
 	return _heard.count(&"mirror") == 1
+
+
+func _test_shifting_void() -> bool:
+	var v: ShiftingVoid = SHIFTING_VOID.instantiate()
+	v.position = Vector2(200, 100)
+	v.size = Vector2(100, 8)
+	v.positions = PackedFloat32Array([10, 60])
+	v.on_jump = true
+	_world.add_child(v)
+	await _frames(2)
+	Input.action_press("jump")
+	await _frames(10)
+	return _heard.count(&"void_shift") == 1
+
+
+func _test_creeping_spikes() -> bool:
+	var c: CreepingSpikes = CREEPING_SPIKES.instantiate()
+	c.position = Vector2(0, 152)
+	c.size = Vector2(320, 8)
+	c.safe_cell = 4
+	c.delay = 0.0
+	c.creep_interval = 0.01
+	c.hold = 0.1
+	_world.add_child(c)
+	await _frames(90)
+	return _heard.count(&"frost") == 2
+
+
+func _test_pop_block() -> bool:
+	var block: PopBlock = POP_BLOCK.instantiate()
+	block.position = Vector2(32, 160)
+	block.size = Vector2(16, 16)
+	block.trigger = Rect2(0, -8, 16, 8)
+	_world.add_child(block)
+	await _frames(10)
+	return &"pop_block" in _heard
+
+
+func _chest(gift: TreasureChest.Gift) -> void:
+	var chest: TreasureChest = CHEST.instantiate()
+	chest.position = Vector2(40, 160)
+	chest.gift = gift
+	_world.add_child(chest)
+	await _frames(60)
+
+
+func _test_chest_good() -> bool:
+	await _chest(TreasureChest.Gift.DOUBLE_JUMP)
+	return _heard == [&"chest"]
+
+
+func _test_chest_bad() -> bool:
+	await _chest(TreasureChest.Gift.LEAD_BOOTS)
+	return _heard == [&"chest", &"curse"]
+
+
+func _test_shield() -> bool:
+	_player.shields = 1
+	_place(HAZARD, Vector2(32, 152), Vector2(16, 8))
+	await _frames(10)
+	return &"shield" in _heard and not &"death" in _heard

@@ -54,7 +54,7 @@ func _ready() -> void:
 	# 200 px/s or a rider sinks deep enough to count as crushed.
 	Zone.make(self, Rect2(Vector2(2, 2), size - Vector2(4, 4))).body_entered.connect(_on_crushed)
 	if spikes != Side.NONE:
-		Zone.make(self, _spike_rect().grow(-1)).body_entered.connect(_on_crushed)
+		Zone.make(self, _spike_rect().grow(-1)).body_entered.connect(_on_spiked)
 	if trigger.has_area():
 		Zone.make(self, trigger).body_entered.connect(_begin.unbind(1), CONNECT_ONE_SHOT)
 	else:
@@ -123,5 +123,10 @@ func _spike_dir() -> Vector2:
 
 
 func _on_crushed(body: Node2D) -> void:
+	if body is Player:
+		body.die(true)
+
+
+func _on_spiked(body: Node2D) -> void:
 	if body is Player:
 		body.die()

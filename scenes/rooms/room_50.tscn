@@ -1,0 +1,66 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/frost.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/treasure_chest.tscn" id="chest"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/creeping_spikes.tscn" id="creep"]
+
+[node name="Room50" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "50. Whiteout"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(320, 20)
+
+[node name="Frost" parent="." instance=ExtResource("creep")]
+position = Vector2(0, 152)
+size = Vector2(320, 8)
+safe_cell = 15
+safe_cells = 0
+marker_cell = 15
+trigger = Rect2(48, -32, 8, 40)
+creep_interval = 0.1
+
+[node name="Chest" parent="." instance=ExtResource("chest")]
+position = Vector2(128, 160)
+gift = 4
+
+[node name="Pillar" parent="." instance=ExtResource("block")]
+position = Vector2(200, 136)
+size = Vector2(16, 24)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(296, 160)
+next_room = "res://scenes/rooms/room_51.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

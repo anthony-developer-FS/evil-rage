@@ -1,0 +1,65 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/dunes.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/shifting_void.tscn" id="void"]
+
+[node name="Room41" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "41. Sinkhole"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(96, 20)
+
+[node name="PitSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(96, 168)
+size = Vector2(224, 8)
+
+[node name="PitFloor" parent="." instance=ExtResource("block")]
+position = Vector2(96, 176)
+size = Vector2(224, 4)
+
+[node name="Sand" parent="." instance=ExtResource("void")]
+position = Vector2(96, 160)
+size = Vector2(224, 20)
+hole_width = 32
+positions = PackedFloat32Array(40, 88)
+approach = 24
+repeat = false
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(296, 160)
+next_room = "res://scenes/rooms/room_42.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

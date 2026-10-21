@@ -19,7 +19,10 @@ const TILE := 8
 func _ready() -> void:
 	_sync()
 	# Tiles line up with the room grid, so redraw while being dragged in the editor.
-	set_notify_transform(Engine.is_editor_hint())
+	# Never switch it off: the physics body relies on it to follow the block when a
+	# script moves it in game.
+	if Engine.is_editor_hint():
+		set_notify_transform(true)
 
 
 func _notification(what: int) -> void:
@@ -42,13 +45,13 @@ func _sync() -> void:
 func _draw() -> void:
 	var theme := WorldTheme.of(self)
 	if theme == null or theme.tiles == null:
-		draw_rect(Rect2(Vector2.ZERO, size), color)
+		draw_rect(_shown_rect(), color)
 		return
 	# Columns sit on a grid aligned to the room, not to the block, so neighbouring
 	# blocks (and the fake floors next to them) join without a seam. Rows start at
 	# the block's top so its surface tile is never cut off.
 	var origin := global_position.round()
-	var bounds := Rect2(Vector2.ZERO, size)
+	var bounds := _shown_rect()
 	var y := 0.0
 	while y < size.y:
 		var x := -float(posmod(int(origin.x), TILE))
@@ -64,6 +67,12 @@ func _draw() -> void:
 				draw_texture_rect_region(theme.tiles, shown, src)
 			x += TILE
 		y += TILE
+
+
+## The part of the block that gets drawn. All of it, except for blocks that are
+## still half hidden in the ground.
+func _shown_rect() -> Rect2:
+	return Rect2(Vector2.ZERO, size)
 
 
 ## Which of the four tile variants a grid cell uses. Mostly the plain first one.
