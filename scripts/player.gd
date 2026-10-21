@@ -19,6 +19,8 @@ var _wall_lock_timer := 0.0
 var _wall_lock_dir := 0.0
 var _jumping := false
 
+@onready var _sprite: AnimatedSprite2D = $Sprite
+
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -56,6 +58,7 @@ func die() -> void:
 		return
 	is_dead = true
 	velocity = Vector2.ZERO
+	_sprite.play("death")
 	died.emit()
 
 
@@ -110,6 +113,27 @@ func _try_jump(wall_dir: float, on_floor: bool) -> void:
 	_buffer_timer = 0.0
 	_coyote_timer = 0.0
 	_jumping = true
+
+
+## Picks the animation from the state the controller just moved in. Purely visual.
+func _update_sprite(input_dir: float, wall_dir: float) -> void:
+	var anim := "idle"
+	if is_on_floor():
+		if absf(velocity.x) > 1.0:
+			anim = "run"
+	elif wall_dir != 0.0 and signf(input_dir) == wall_dir and velocity.y > 0.0:
+		anim = "wall_slide"
+	elif velocity.y < 0.0:
+		anim = "jump"
+	else:
+		anim = "fall"
+
+	# Face the wall while sliding on it, otherwise face where the player is heading.
+	if anim == "wall_slide":
+		_sprite.flip_h = wall_dir < 0.0
+	elif input_dir != 0.0:
+		_sprite.flip_h = input_dir < 0.0
+	_sprite.play(anim)
 
 
 ## -1 if touching a wall on the left, 1 on the right, 0 if none. Uses short shape
