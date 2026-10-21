@@ -14,6 +14,8 @@ const FALLING_CEILING := preload("res://scenes/trolls/falling_ceiling.tscn")
 const RUNAWAY_GOAL := preload("res://scenes/trolls/runaway_goal.tscn")
 const DECOY_GOAL := preload("res://scenes/trolls/decoy_goal.tscn")
 const SPRING := preload("res://scenes/objects/spring.tscn")
+const DART_TRAP := preload("res://scenes/trolls/dart_trap.tscn")
+const FAKE_WALL := preload("res://scenes/trolls/fake_wall.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -36,6 +38,8 @@ func _ready() -> void:
 	await _run("runaway goal plays on each hop", _test_runaway_goal)
 	await _run("decoy goal bites, then death plays", _test_decoy_goal)
 	await _run("spring plays on bounce", _test_spring)
+	await _run("dart trap plays when it fires", _test_dart_trap)
+	await _run("secret passage chimes once", _test_fake_wall)
 	await _run("volume changes apply to the bus", _test_volume)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
@@ -155,6 +159,22 @@ func _test_spring() -> bool:
 	return &"jump" in _heard
 
 
+func _test_dart_trap() -> bool:
+	var trap: DartTrap = _dart_trap(Vector2(200, 154), Rect2(-170, -16, 40, 16))
+	await _frames(10)
+	return &"dart" in _heard
+
+
+func _test_fake_wall() -> bool:
+	_place(FAKE_WALL, Vector2(60, 112), Vector2(16, 48))
+	Input.action_press("move_right")
+	await _frames(60)
+	Input.action_press("move_left")
+	Input.action_release("move_right")
+	await _frames(60)
+	return _heard.count(&"secret") == 1
+
+
 func _test_invisible_block() -> bool:
 	_place(INVISIBLE_BLOCK, Vector2(32, 128), Vector2(16, 16))
 	Input.action_press("jump")
@@ -192,3 +212,12 @@ func _test_volume() -> bool:
 	var ok := is_equal_approx(AudioServer.get_bus_volume_db(AudioServer.get_bus_index(&"SFX")), linear_to_db(0.5))
 	Audio.set_volume(&"SFX", before)
 	return ok
+
+
+## Trigger set before entering the tree, as a saved room would.
+func _dart_trap(pos: Vector2, trigger: Rect2) -> DartTrap:
+	var trap: DartTrap = DART_TRAP.instantiate()
+	trap.position = pos
+	trap.trigger = trigger
+	_world.add_child(trap)
+	return trap

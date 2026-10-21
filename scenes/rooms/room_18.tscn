@@ -1,0 +1,99 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/castle.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/fake_floor.tscn" id="fake"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/falling_ceiling.tscn" id="ceiling"]
+
+[node name="Room18" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "18. Drawbridge"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 244)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 244)
+
+[node name="FloorStart" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(48, 20)
+
+[node name="Moat" parent="." instance=ExtResource("block")]
+position = Vector2(48, 168)
+size = Vector2(176, 12)
+
+[node name="MoatSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(48, 160)
+size = Vector2(176, 8)
+
+[node name="Plank1" parent="." instance=ExtResource("fake")]
+position = Vector2(48, 160)
+size = Vector2(32, 8)
+delay = 0.3
+
+[node name="Plank2" parent="." instance=ExtResource("fake")]
+position = Vector2(80, 160)
+size = Vector2(32, 8)
+delay = 0.3
+
+[node name="Plank3" parent="." instance=ExtResource("fake")]
+position = Vector2(112, 160)
+size = Vector2(32, 8)
+delay = 0.3
+
+[node name="Plank4" parent="." instance=ExtResource("fake")]
+position = Vector2(144, 160)
+size = Vector2(32, 8)
+delay = 0.3
+
+[node name="Plank5" parent="." instance=ExtResource("fake")]
+position = Vector2(176, 160)
+size = Vector2(32, 8)
+delay = 0.3
+
+[node name="Landing" parent="." instance=ExtResource("block")]
+position = Vector2(208, 160)
+size = Vector2(112, 20)
+
+[node name="Gatehouse" parent="." instance=ExtResource("block")]
+position = Vector2(248, -64)
+size = Vector2(72, 128)
+
+[node name="Portcullis" parent="." instance=ExtResource("ceiling")]
+position = Vector2(256, 64)
+size = Vector2(16, 24)
+gravity = 3000.0
+max_speed = 600.0
+trigger_depth = 72.0
+trigger_reach = 12.0
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(300, 160)
+next_room = "res://scenes/rooms/room_19.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

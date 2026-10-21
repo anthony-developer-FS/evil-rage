@@ -6,7 +6,7 @@ A punishing 2D precision platformer where the levels lie to you. Built with Godo
 
 1. Install [Godot 4.5](https://godotengine.org/download) (standard build, no .NET needed).
 2. Open Godot, choose **Import**, and select this folder's `project.godot`.
-3. Press F5. Room 1 loads. Beat all twelve rooms.
+3. Press F5. Room 1 loads. Beat all twenty rooms across four worlds.
 
 Controls: A/D or arrows to move, Space/K/Up to jump, R to restart, F11 or Alt+Enter to toggle fullscreen, `-` and `=` for volume, M to toggle music. Gamepad works too (stick or d-pad, A to jump).
 
@@ -31,8 +31,14 @@ The world is drawn into a 320x180 viewport and scaled up by whole numbers, so pi
 | `scripts/room.gd` | Base for every room: spawns the player, reloads the room on death |
 | `scenes/objects/` | Reusable pieces: player, block, hazard (spikes), goal, spring, HUD |
 | `scenes/trolls/` | Troll traps, each a drop-in scene (see below) |
-| `scenes/rooms/room_01.tscn` to `room_06.tscn` | Part one: one troll per room, then all of them |
-| `scenes/rooms/room_07.tscn` to `room_12.tscn` | Part two: decoy exits, springs, a wall-jump shaft and a crumbling bridge, then a finale that mixes them |
+| `scenes/rooms/room_01.tscn` to `room_06.tscn` | The Jungle: one troll per room, then all of them |
+| `scenes/rooms/room_07.tscn` to `room_12.tscn` | The Caves: decoy exits, springs, a wall-jump shaft and a crumbling bridge, then a finale that mixes them |
+| `scenes/rooms/room_13.tscn` to `room_16.tscn` | The Temple: dart traps |
+| `scenes/rooms/room_17.tscn` to `room_20.tscn` | The Castle: secret passages, a portcullis, murder holes and the final keep |
+| `scripts/world_theme.gd`, `resources/themes/` | One theme resource per world: backdrop, tiles, spike and title colors, ambient motes |
+| `scripts/backdrop.gd` | Draws the room's backdrop and its fireflies, drips, dust or embers |
+| `tools/make_themes.py` | Paints every world's backdrop and tile sheet into `art/themes/`. Edit and rerun it to change the art |
+| `tools/room_shots.tscn` | Saves a screenshot of each room, for checking art without playing |
 | `scenes/rooms/test_room.tscn` | Movement sandbox |
 | `tests/` | Headless tests for movement, traps and level beatability |
 
@@ -48,10 +54,27 @@ Drop a trap scene into a room and set its `size` in the inspector. In the editor
 | Invisible block | Appears when hit from below and bonks the player | none |
 | Falling ceiling | Drops when the player walks under, crushes, then becomes a block | `trigger_depth`, `gravity` |
 | Decoy goal | Looks exactly like the exit, kills on touch | none |
+| Dart trap | A carved face in a wall. Fires darts along `direction` when the trigger is entered; darts break on blocks | `trigger`, `direction`, `count`, `interval`, `delay`, `speed` |
+| Fake wall | Looks like a block but is not solid: a secret passage. Fades a little while the player is inside | none |
 
 A spring (`scenes/objects/spring.tscn`) is not a trap but rooms use it as one. Place it on the floor: walking onto it gives a short hop, and landing on it with jump held launches the player about `power² / 1800` pixels. Rooms 8 and 10 lean on that difference.
 
+The falling ceiling's `trigger_reach` widens its trigger past both sides, so it can drop just in front of the player. Room 18's portcullis uses it.
+
 Rooms reload entirely on death, so every troll trap resets for free. A new room is a scene whose root uses `room.gd` and contains `Player`, `Spawn`, `Goal` and `Hud`. Set the goal's `next_room` to chain rooms; leave it empty on the last room.
+
+## Worlds
+
+Each room's root has a `world_theme` (a `WorldTheme` resource in `resources/themes/`). Blocks and every trap built on them draw that world's 8x8 tiles, spikes take its color, and the `Backdrop` node paints its 320x180 background plus a few ambient motes. Entering a new world shows its name as a banner, and the HUD title reads "The Temple · 13. Mind the faces". A room with no theme keeps the old flat grey look, so `test_room.tscn` still works.
+
+| World | Rooms | Ambient |
+| --- | --- | --- |
+| The Jungle | 1 to 6 | Fireflies |
+| The Caves | 7 to 12 | Drips |
+| The Temple | 13 to 16 | Dust |
+| The Castle | 17 to 20 | Embers |
+
+Tiles are laid on a grid aligned to the room, so a fake floor next to a real block joins without a seam. To add a world, add a painter pair to `THEMES` in `tools/make_themes.py`, run it (needs numpy), and create a theme resource pointing at the new images. The images are a few KB each and are stored as plain git objects rather than LFS, like the audio.
 
 ## Sound
 
@@ -67,4 +90,4 @@ There are three buses in `default_bus_layout.tres`: Master, Music and SFX. Volum
 GODOT=/path/to/godot ./run_tests.sh
 ```
 
-Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run.
+Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run, and `LEVEL_KIND=solve` (or `naive`) to play only one of the two runs.

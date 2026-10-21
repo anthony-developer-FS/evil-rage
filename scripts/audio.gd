@@ -24,6 +24,8 @@ const SFX := {
 	&"falling_ceiling": preload("res://assets/audio/sfx/falling_ceiling.wav"),
 	&"ceiling_thud": preload("res://assets/audio/sfx/ceiling_thud.wav"),
 	&"ui_tick": preload("res://assets/audio/sfx/ui_tick.wav"),
+	&"dart": preload("res://assets/audio/sfx/dart.wav"),
+	&"secret": preload("res://assets/audio/sfx/secret.wav"),
 }
 const MUSIC := preload("res://assets/audio/music/theme.ogg")
 
@@ -36,6 +38,8 @@ const TRAP_SOUNDS := {
 	&"FallingCeiling": &"falling_ceiling",
 	&"Spring": &"jump",
 	&"DecoyGoal": &"pop_spikes",
+	&"DartTrap": &"dart",
+	&"FakeWall": &"secret",
 }
 ## Sounds that get a little random pitch so repeats don't sound robotic.
 const JITTER := [&"jump", &"wall_jump", &"land"]

@@ -42,10 +42,11 @@ def sine(freq, dur):
     return np.sin(2 * np.pi * phase(freq, dur))
 
 
-def noise(dur, hold=1):
-    """White noise; hold > 1 repeats samples for a crunchier, lower-pitched hiss."""
+def noise(dur, hold=1, gen=None):
+    """White noise; hold > 1 repeats samples for a crunchier, lower-pitched hiss.
+    Sounds added later pass their own `gen`, so older sounds keep their exact noise."""
     n = int(dur * RATE)
-    v = rng.uniform(-1, 1, n // hold + 1)
+    v = (gen or rng).uniform(-1, 1, n // hold + 1)
     return np.repeat(v, hold)[:n]
 
 
@@ -207,6 +208,24 @@ def sfx_ceiling_thud():
     thud = sine(sweep(110, 35, d), d) * env(d, 0.001, 2.0)
     debris = lowpass(noise(d, hold=4), 1500) * env(d, 0.001, 3.0) * 0.4
     return mix(thud, debris)
+
+
+def sfx_dart():
+    # Fwip: a short airy whoosh with a wooden click as the dart leaves the wall.
+    gen = np.random.default_rng(2001)
+    d = 0.22
+    t = t_axis(d)
+    whoosh = lowpass(noise(d, gen=gen), 2500) * env(d, 0.01, 2.5) * (0.6 + 0.4 * np.sin(2 * np.pi * 9 * t))
+    click = triangle(sweep(1400, 900, 0.03), 0.03) * env(0.03, 0.0005, 3.0) * 0.5
+    return mix(click, whoosh * 0.7)
+
+
+def sfx_secret():
+    # Three rising notes, a little "you found something" chime.
+    parts = []
+    for f, d in [(784.0, 0.07), (987.77, 0.07), (1318.5, 0.22)]:
+        parts.append(mix(sine(f, d), triangle(f * 2, d) * 0.2) * env(d, 0.003, 1.5))
+    return cat(*parts) * 0.5
 
 
 def sfx_taunt():

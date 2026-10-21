@@ -15,6 +15,12 @@ signal landed
 	set(value):
 		trigger_depth = value
 		queue_redraw()
+## How far the trigger reaches past each side of the block, so it can drop just
+## in front of the player instead of only on top of them.
+@export var trigger_reach := 0.0:
+	set(value):
+		trigger_reach = value
+		queue_redraw()
 
 var _falling := false
 var _speed := 0.0
@@ -27,7 +33,7 @@ func _ready() -> void:
 	# Only collide with the world while falling, so it passes through the player
 	# and the kill zone decides what happens to them.
 	collision_mask = 1
-	Zone.make(self, Rect2(0, size.y, size.x, trigger_depth)).body_entered.connect(
+	Zone.make(self, _trigger_rect()).body_entered.connect(
 		_start_falling.unbind(1), CONNECT_ONE_SHOT)
 	var kill := Zone.make(self, Rect2(1, size.y - 2, size.x - 2, 3))
 	kill.body_entered.connect(_on_crush)
@@ -35,7 +41,11 @@ func _ready() -> void:
 
 func _draw() -> void:
 	super()
-	Zone.draw_outline(self, Rect2(0, size.y, size.x, trigger_depth))
+	Zone.draw_outline(self, _trigger_rect())
+
+
+func _trigger_rect() -> Rect2:
+	return Rect2(-trigger_reach, size.y, size.x + trigger_reach * 2.0, trigger_depth)
 
 
 func _physics_process(delta: float) -> void:

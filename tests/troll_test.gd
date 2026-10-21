@@ -12,6 +12,8 @@ const INVISIBLE_BLOCK := preload("res://scenes/trolls/invisible_block.tscn")
 const FALLING_CEILING := preload("res://scenes/trolls/falling_ceiling.tscn")
 const DECOY_GOAL := preload("res://scenes/trolls/decoy_goal.tscn")
 const SPRING := preload("res://scenes/objects/spring.tscn")
+const DART_TRAP := preload("res://scenes/trolls/dart_trap.tscn")
+const FAKE_WALL := preload("res://scenes/trolls/fake_wall.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -28,6 +30,9 @@ func _ready() -> void:
 	await _run("decoy goal kills instead of finishing", _test_decoy_goal)
 	await _run("spring gives a short hop when walked onto", _test_spring_tap)
 	await _run("spring launches high when jump is held", _test_spring_hold)
+	await _run("dart trap fires when the player crosses it", _test_dart_hits)
+	await _run("dart breaks on a wall in its way", _test_dart_blocked)
+	await _run("fake wall lets the player walk through", _test_fake_wall)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
 
@@ -161,3 +166,34 @@ func _test_spring_hold() -> bool:
 	var height := await _spring_peak(true)
 	print("      spring bounce jump held: %.1f px" % height)
 	return height > 100.0
+
+
+func _test_dart_hits() -> bool:
+	var trap: DartTrap = _dart_trap(Vector2(200, 154), Rect2(-80, -16, 40, 16))
+	Input.action_press("move_right")
+	await _frames(150)
+	return _player.is_dead
+
+
+func _test_dart_blocked() -> bool:
+	var trap: DartTrap = _dart_trap(Vector2(200, 154), Rect2(-180, -16, 40, 16))
+	_place(BLOCK, Vector2(120, 120), Vector2(8, 40))
+	await _frames(120)
+	return not _player.is_dead and trap.get_parent().get_children().all(
+		func(n: Node) -> bool: return not n is DartTrap.Dart)
+
+
+func _test_fake_wall() -> bool:
+	_place(FAKE_WALL, Vector2(100, 112), Vector2(16, 48))
+	Input.action_press("move_right")
+	await _frames(120)
+	return _player.global_position.x > 140.0
+
+
+## Trigger set before entering the tree, as a saved room would.
+func _dart_trap(pos: Vector2, trigger: Rect2) -> DartTrap:
+	var trap: DartTrap = DART_TRAP.instantiate()
+	trap.position = pos
+	trap.trigger = trigger
+	_world.add_child(trap)
+	return trap

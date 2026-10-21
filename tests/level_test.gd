@@ -3,11 +3,13 @@ extends Node
 ## and that the obvious naive route fails because of the troll. Run with:
 ##   godot --headless --path . res://tests/level_test.tscn
 ## Pass room names after "--" to check only those rooms, e.g. "-- room_07 room_08".
+## Set LEVEL_KIND=solve or LEVEL_KIND=naive to play only that run.
 ## Exits with code 0 when every check passes, 1 otherwise.
 ##
 ## Script commands: ["right", x] / ["left", x] hold a direction until the player
 ## crosses x. ["jump", frames] holds jump for that many physics frames, keeping the
-## current direction. ["hold", frames] keeps the direction. ["idle", frames] lets go.
+## current direction, or switches to the direction given as a third element, e.g.
+## ["jump", 60, "left"]. ["hold", frames] keeps the direction. ["idle", frames] lets go.
 ## After the script ends the current direction is held until the run resolves.
 
 ## Room 9: walk into the shaft, then wall jump between its walls until the top.
@@ -69,6 +71,47 @@ var runs := {
 		"solve": [["right", 48], ["jump", 60], ["right", 140], ["jump", 60], ["right", 196], ["jump", 200], ["right", 400]],
 		"naive": [["right", 76], ["jump", 60], ["right", 400]],
 	},
+	"room_13": {
+		# Hop the rubble. The face only shoots along the floor.
+		"solve": [["right", 70], ["jump", 60], ["right", 122], ["jump", 60], ["right", 186], ["jump", 60],
+			["right", 240], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_14": {
+		# Jump from the second stone straight to the fourth.
+		"solve": [["right", 76], ["jump", 30], ["right", 128], ["jump", 60], ["right", 192], ["idle", 10],
+			["right", 200], ["jump", 30], ["right", 400]],
+		"naive": [["right", 76], ["jump", 30], ["right", 128], ["jump", 20], ["right", 160], ["jump", 20], ["right", 400]],
+	},
+	"room_15": {
+		# Peek off the edge to set it off, back up onto the dais, wait out the volley.
+		"solve": [["right", 44], ["left", 30], ["idle", 360], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_16": {
+		"solve": [["right", 92], ["jump", 8], ["right", 188], ["jump", 8], ["right", 400]],
+		"naive": [["right", 92], ["jump", 60], ["right", 188], ["jump", 60], ["right", 400]],
+	},
+	"room_17": {
+		"solve": [["left", 0]],
+		"naive": [["right", 400]],
+	},
+	"room_18": {
+		# Run the bridge, then stop the moment the portcullis drops and hop over it.
+		"solve": [["right", 214], ["idle", 30], ["right", 240], ["idle", 60], ["left", 226], ["idle", 20],
+			["right", 230], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_19": {
+		# Each hole fires as you get near it. Stop, let the darts land, move on.
+		"solve": [["right", 48], ["idle", 80], ["right", 110], ["idle", 80], ["right", 174], ["idle", 80], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_20": {
+		# Land on the spring with jump held, steer left onto the ledge, walk into the wall.
+		"solve": [["right", 30], ["jump", 75], ["jump", 90, "left"], ["left", 0]],
+		"naive": [["right", 400]],
+	},
 }
 
 var _failures := 0
@@ -80,6 +123,8 @@ func _ready() -> void:
 		if not only.is_empty() and not room_name in only:
 			continue
 		for kind in ["solve", "naive"]:
+			if OS.get_environment("LEVEL_KIND") not in ["", kind]:
+				continue
 			var result: String = await _play(room_name, runs[room_name][kind])
 			var ok: bool = (result == "goal") == (kind == "solve")
 			print("%s  %s %s -> %s" % ["ok  " if ok else "FAIL", room_name, kind, result])
@@ -119,6 +164,9 @@ func _play(room_name: String, script: Array) -> String:
 						break
 					await get_tree().physics_frame
 			"jump":
+				if cmd.size() > 2:
+					_set_dir(cmd[2])
+					dir = cmd[2]
 				Input.action_press("jump")
 				await _frames(cmd[1], state)
 				Input.action_release("jump")

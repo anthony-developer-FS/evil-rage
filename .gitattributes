@@ -6,3 +6,6 @@
 # Generated audio is small and reproducible from tools/make_audio.py, so it is
 # stored as plain git objects instead of LFS.
 assets/audio/** -filter -diff -merge binary
+# Theme art is a few KB per image and reproducible from tools/make_themes.py, so
+# like the audio it is stored as plain git objects instead of LFS.
+art/themes/**/*.png -filter -diff -merge binary
