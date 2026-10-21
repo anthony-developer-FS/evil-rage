@@ -41,6 +41,11 @@ var _world_theme: WorldTheme
 var world: SubViewport
 
 
+func _ready() -> void:
+	# Fullscreen still toggles while the level select pauses the room.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	# F11 or Alt+Enter. The 320x180 world scales by whole numbers, so it stays
 	# pixel-sharp at 1080p (6x), 1440p (8x) and 4K (12x).
@@ -81,6 +86,11 @@ func go_to_room(path: String) -> void:
 		_load_room.call_deferred(path)
 	else:
 		get_tree().call_deferred("change_scene_to_file", path)
+
+
+## Path of the room being played, or "" before the first one loads.
+func current_room() -> String:
+	return _room_path
 
 
 func show_banner(text: String, seconds := 0.0) -> void:

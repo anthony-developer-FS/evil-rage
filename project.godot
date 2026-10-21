@@ -45,7 +45,10 @@ restart={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":82), Object(InputEventJoypadButton,"button_index":4)]
 }
-
+menu={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194305), Object(InputEventJoypadButton,"button_index":6)]
+}
 volume_up={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":61), Object(InputEventKey,"physical_keycode":4194437)]
