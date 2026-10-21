@@ -15,6 +15,9 @@ const TAUNTS := [
 	"Trust nothing. Especially me.",
 	"So close. Not really.",
 	"Your controller is fine. You're not.",
+	"Not every exit is an exit.",
+	"You held jump, didn't you?",
+	"Up is a direction. Not always the right one.",
 ]
 
 var total_deaths := 0

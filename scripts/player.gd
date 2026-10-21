@@ -21,7 +21,8 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var input_dir := Input.get_axis("move_left", "move_right")
-	var on_floor := is_on_floor()
+	# Launched off the floor this tick (by a spring) counts as airborne.
+	var on_floor := is_on_floor() and velocity.y >= 0.0
 	var wall_dir := _get_wall_dir()
 
 	_tick_timers(delta, on_floor)
@@ -50,6 +51,15 @@ func die() -> void:
 	is_dead = true
 	velocity = Vector2.ZERO
 	died.emit()
+
+
+## Throws the player upward, as a spring does. It counts as a jump: let go of jump
+## early and the rise is cut short, so holding jump decides how high they go.
+func launch(speed: float) -> void:
+	velocity.y = -speed
+	_jumping = true
+	_coyote_timer = 0.0
+	_buffer_timer = 0.0
 
 
 func _tick_timers(delta: float, on_floor: bool) -> void:
