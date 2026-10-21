@@ -28,6 +28,11 @@ const PORTAL := preload("res://scenes/trolls/portal.tscn")
 const COIN := preload("res://scenes/trolls/coin.tscn")
 const REAPER := preload("res://scenes/trolls/reaper.tscn")
 const GHOST := preload("res://scenes/trolls/ghost.tscn")
+const PUSH_BUTTON := preload("res://scenes/trolls/push_button.tscn")
+const SWITCH_BLOCK := preload("res://scenes/trolls/switch_block.tscn")
+const FLIP_PLATFORM := preload("res://scenes/trolls/flip_platform.tscn")
+const WRAP_STAGE := preload("res://scenes/trolls/wrap_stage.tscn")
+const GOAL := preload("res://scenes/objects/goal.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -89,6 +94,18 @@ func _ready() -> void:
 	await _run("ghost freezes while watched", _test_ghost_shy)
 	await _run("ghost kills on touch", _test_ghost_kills)
 	await _run("a sleeping ghost wakes on its trigger", _test_ghost_trigger)
+	await _run("button switches a block on under a pit", _test_button_bridge)
+	await _run("button opens a wall, and a second press closes it", _test_button_wall)
+	await _run("button takes away a node with no press()", _test_button_toggle)
+	await _run("a one-shot button only works once", _test_button_one_shot)
+	await _run("a switch block switched on around the player crushes", _test_switch_crush)
+	await _run("flip platform turns its spikes onto the rider", _test_flip_kills)
+	await _run("flip platform turned spikes-down can be walked on", _test_flip_safe)
+	await _run("flappy player flies forward and ignores left and right", _test_flappy_forward)
+	await _run("each flap lifts a flappy player", _test_flappy_flap)
+	await _run("a turn button sends a flappy player back", _test_flappy_turn)
+	await _run("wraparound room brings a falling player back in at the top", _test_wrap)
+	await _run("wrap stage only exists on its laps", _test_wrap_stage)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
 
@@ -861,3 +878,196 @@ func _test_ghost_trigger() -> bool:
 	Input.action_press("move_right")
 	await _frames(60)
 	return slept and ghost.awake
+
+
+func _button(pos: Vector2, targets: Array[NodePath], one_shot := true) -> PushButton:
+	var button: PushButton = PUSH_BUTTON.instantiate()
+	button.position = pos
+	button.one_shot = one_shot
+	_world.add_child(button)
+	# Paths are relative to the button, as they would be in a saved room.
+	var paths: Array[NodePath] = []
+	for t in targets:
+		paths.append(button.get_path_to(_world.get_node(t)))
+	button.targets = paths
+	return button
+
+
+func _test_button_bridge() -> bool:
+	_world.get_child(0).size = Vector2(120, 20)
+	var bridge := _switch_block(Vector2(120, 160), Vector2(80, 8))
+	bridge.name = "Bridge"
+	_place(BLOCK, Vector2(200, 160), Vector2(120, 20))
+	_button(Vector2(80, 160), [^"Bridge"])
+	Input.action_press("move_right")
+	await _frames(260)
+	return bridge.solid and not _player.is_dead and _player.position.x > 240.0
+
+
+func _test_button_wall() -> bool:
+	var wall: MovingWall = MOVING_WALL.instantiate()
+	wall.name = "Wall"
+	wall.position = Vector2(140, 100)
+	wall.size = Vector2(16, 60)
+	wall.travel = Vector2(0, -60)
+	wall.duration = 0.3
+	wall.on_button = true
+	_world.add_child(wall)
+	var button := _button(Vector2(80, 160), [^"Wall"], false)
+	await _frames(30)
+	var shut := wall.position.y == 100.0
+	button.press()
+	await _frames(60)
+	var open := wall.position.y == 40.0
+	button.press()
+	await _frames(60)
+	return shut and open and wall.position.y == 100.0
+
+
+func _test_button_toggle() -> bool:
+	var spikes: Hazard = _place(HAZARD, Vector2(120, 152), Vector2(16, 8))
+	spikes.name = "Spikes"
+	_button(Vector2(80, 160), [^"Spikes"])
+	Input.action_press("move_right")
+	await _frames(150)
+	return not _player.is_dead and _player.position.x > 140.0 and not spikes.visible
+
+
+func _test_button_one_shot() -> bool:
+	var bridge: SwitchBlock = _place(SWITCH_BLOCK, Vector2(200, 100), Vector2(16, 8))
+	bridge.name = "Bridge"
+	_button(Vector2(80, 160), [^"Bridge"])
+	Input.action_press("move_right")
+	await _frames(60)
+	Input.action_release("move_right")
+	Input.action_press("move_left")
+	await _frames(60)
+	Input.action_release("move_left")
+	Input.action_press("move_right")
+	await _frames(60)
+	return not bridge.solid
+
+
+## A switch block that starts switched off.
+func _switch_block(pos: Vector2, size: Vector2) -> SwitchBlock:
+	var block: SwitchBlock = SWITCH_BLOCK.instantiate()
+	block.position = pos
+	block.size = size
+	block.solid = false
+	_world.add_child(block)
+	return block
+
+
+func _test_switch_crush() -> bool:
+	var block := _switch_block(Vector2(30, 140), Vector2(24, 20))
+	await _frames(10)
+	var alive := not _player.is_dead
+	block.press()
+	await _frames(5)
+	return alive and _player.is_dead
+
+
+func _test_flip_kills() -> bool:
+	_world.get_child(0).size = Vector2(20, 20)
+	var slab: FlipPlatform = _place(FLIP_PLATFORM, Vector2(20, 160), Vector2(48, 8))
+	_player.position = Vector2(40, 159)
+	await _frames(30)
+	var alive := not _player.is_dead
+	slab.press()
+	await _frames(60)
+	return alive and _player.is_dead
+
+
+func _test_flip_safe() -> bool:
+	_world.get_child(0).size = Vector2(60, 20)
+	var slab: FlipPlatform = _place(FLIP_PLATFORM, Vector2(60, 160), Vector2(48, 8))
+	slab.spikes_up = true
+	_place(BLOCK, Vector2(108, 160), Vector2(212, 20))
+	slab.press()
+	await _frames(60)
+	Input.action_press("move_right")
+	await _frames(150)
+	return not _player.is_dead and _player.position.x > 150.0 and not slab.spikes_up
+
+
+func _test_flappy_forward() -> bool:
+	_player.flappy_dir = 1.0
+	Input.action_press("move_left")
+	await _frames(120)
+	return not _player.is_dead and absf(_player.position.x - (40.0 + _player.tuning.flap_speed)) < 4.0
+
+
+func _test_flappy_flap() -> bool:
+	_player.flappy_dir = 1.0
+	await _frames(10)
+	var lowest := _player.position.y
+	var highest := lowest
+	# Flap four times in a row, a quarter second apart.
+	for i in 4:
+		Input.action_press("jump")
+		await _frames(1)
+		Input.action_release("jump")
+		for f in 30:
+			await _frames(1)
+			highest = minf(highest, _player.position.y)
+	return lowest - highest > 30.0
+
+
+func _test_flappy_turn() -> bool:
+	_player.flappy_dir = 1.0
+	var button := _button(Vector2(120, 160), [])
+	button.turn = true
+	await _frames(240)
+	return _player.flappy_dir == -1.0 and _player.position.x < 100.0
+
+
+## A bare room with no floor under the player, which wraps round.
+func _wrap_room() -> Room:
+	_world.get_child(0).queue_free()
+	_player.queue_free()
+	var room := Room.new()
+	room.wrap_around = true
+	_player = PLAYER.instantiate()
+	_player.name = "Player"
+	room.add_child(_player)
+	var spawn := Marker2D.new()
+	spawn.name = "Spawn"
+	spawn.position = Vector2(160, 40)
+	room.add_child(spawn)
+	var goal: Goal = GOAL.instantiate()
+	goal.name = "Goal"
+	goal.position = Vector2(300, -100)
+	room.add_child(goal)
+	return room
+
+
+func _test_wrap() -> bool:
+	var room := _wrap_room()
+	var laps: Array[int] = []
+	room.wrapped.connect(func(count: int) -> void: laps.append(count))
+	_world.add_child(room)
+	var lowest := 0.0
+	for i in 240:
+		await _frames(1)
+		lowest = maxf(lowest, _player.position.y)
+	return not _player.is_dead and laps.size() >= 2 and laps[0] == 1 and lowest <= Room.WRAP_SPAN + 4.0
+
+
+func _test_wrap_stage() -> bool:
+	var room := _wrap_room()
+	var first: WrapStage = WRAP_STAGE.instantiate()
+	first.max_wraps = 0
+	var second: WrapStage = WRAP_STAGE.instantiate()
+	second.min_wraps = 1
+	second.max_wraps = 1
+	room.add_child(first)
+	room.add_child(second)
+	_world.add_child(room)
+	await _frames(2)
+	var before := first.visible and not second.visible and second.process_mode == Node.PROCESS_MODE_DISABLED
+	await room.wrapped
+	await _frames(2)
+	var during := not first.visible and second.visible and second.process_mode == Node.PROCESS_MODE_INHERIT
+	await room.wrapped
+	await _frames(2)
+	return before and during and not second.visible

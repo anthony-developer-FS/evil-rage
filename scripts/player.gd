@@ -16,6 +16,13 @@ signal controls_flipped
 signal shield_broken
 ## Fires when a portal moves the player.
 signal teleported
+## Fires on each flap in a flappy room.
+signal flapped
+## Fires when a button turns a flappy player round.
+signal turned
+## Fires when the player leaves a wraparound room through the bottom and comes
+## back in at the top, or the other way round.
+signal wrapped
 
 @export var tuning: MovementTuning = preload("res://resources/default_tuning.tres")
 
@@ -34,6 +41,9 @@ var jump_scale := 1.0
 var air_jumps := 0
 ## Hits the player can take from spikes and traps. A chest can grant one.
 var shields := 0
+## In a flappy room, 1 while flying right and -1 while flying left. Left and right
+## do nothing there: the player always flies forward, and jump flaps. 0 walks.
+var flappy_dir := 0.0
 
 var _coyote_timer := 0.0
 var _buffer_timer := 0.0
@@ -56,6 +66,9 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
+		return
+	if flappy_dir != 0.0:
+		_fly(delta)
 		return
 
 	var input_dir := Input.get_axis("move_left", "move_right")
@@ -166,6 +179,21 @@ func teleport(to: Vector2) -> void:
 	teleported.emit()
 
 
+## A button sent a flappy player back the way they came.
+func turn_around() -> void:
+	if flappy_dir == 0.0:
+		return
+	flappy_dir = -flappy_dir
+	turned.emit()
+
+
+## Moves the player by `dy` without touching their speed, as a wraparound room does
+## when they leave through the bottom or the top of the screen.
+func wrap_vertically(dy: float) -> void:
+	global_position.y += dy
+	wrapped.emit()
+
+
 func set_controls_reversed(reversed: bool) -> void:
 	if reversed == controls_reversed:
 		return
@@ -242,6 +270,26 @@ func _try_jump(wall_dir: float, on_floor: bool) -> void:
 	_buffer_timer = 0.0
 	_coyote_timer = 0.0
 	_jumping = true
+
+
+## Flappy rooms: fly forward at a steady speed, and flap on every press of jump,
+## in mid-air as often as the player likes. No wall slides, no wall jumps.
+func _fly(delta: float) -> void:
+	var on_floor := is_on_floor() and velocity.y * gravity_sign >= 0.0
+	_tick_timers(delta, on_floor)
+	if _shove_timer <= 0.0:
+		velocity.x = flappy_dir * tuning.flap_speed
+	_apply_gravity(0.0, 0.0, on_floor, delta)
+	if Input.is_action_just_pressed("jump") and _shove_timer <= 0.0:
+		velocity.y = -tuning.flap_velocity * gravity_sign
+		flapped.emit()
+	var fall_speed := velocity.y * gravity_sign
+	move_and_slide()
+	if not on_floor and is_on_floor():
+		landed.emit(fall_speed)
+	_update_sprite(flappy_dir, 0.0)
+	if Input.is_action_just_pressed("restart"):
+		die(true)
 
 
 ## Picks the animation from the state the controller just moved in. Purely visual.

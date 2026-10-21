@@ -1,0 +1,107 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/switchboard.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/push_button.tscn" id="button"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/moving_wall.tscn" id="mover"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/flip_platform.tscn" id="flip"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+
+[node name="Room90" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "90. Switchboard"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(112, 20)
+
+[node name="Shelf" parent="." instance=ExtResource("block")]
+position = Vector2(0, 104)
+size = Vector2(64, 8)
+
+[node name="CeilingButton" parent="." instance=ExtResource("button")]
+position = Vector2(40, 112)
+rotation = 3.141593
+targets = Array[NodePath]([NodePath("../Door")])
+
+[node name="Trap" parent="." instance=ExtResource("hazard")]
+position = Vector2(64, 152)
+size = Vector2(32, 8)
+process_mode = 4
+visible = false
+
+[node name="Button" parent="." instance=ExtResource("button")]
+position = Vector2(80, 160)
+targets = Array[NodePath]([NodePath("../Trap")])
+
+[node name="Door" parent="." instance=ExtResource("mover")]
+position = Vector2(96, -64)
+size = Vector2(16, 224)
+travel = Vector2(0, -80)
+duration = 0.3
+on_button = true
+
+[node name="Landing" parent="." instance=ExtResource("block")]
+position = Vector2(112, 160)
+size = Vector2(48, 20)
+
+[node name="PitSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(160, 168)
+size = Vector2(96, 8)
+
+[node name="PitFloor" parent="." instance=ExtResource("block")]
+position = Vector2(160, 176)
+size = Vector2(96, 4)
+
+[node name="Ferry" parent="." instance=ExtResource("mover")]
+position = Vector2(160, 160)
+size = Vector2(32, 8)
+travel = Vector2(64, 0)
+duration = 1.4
+loop = true
+pause = 1.6
+delay = 1.5
+
+[node name="Slab" parent="." instance=ExtResource("flip")]
+position = Vector2(256, 160)
+size = Vector2(48, 8)
+interval = 1.5
+
+[node name="FloorEnd" parent="." instance=ExtResource("block")]
+position = Vector2(304, 160)
+size = Vector2(16, 20)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(312, 160)
+next_room = "res://scenes/rooms/room_91.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

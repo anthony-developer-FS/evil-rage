@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WorldTheme" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_theme.gd" id="1"]
+[ext_resource type="Texture2D" path="res://art/themes/switchboard/backdrop.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/themes/switchboard/tiles.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/themes/switchboard/door.png" id="4"]
+
+[resource]
+script = ExtResource("1")
+display_name = "The Switchboard"
+backdrop = ExtResource("2")
+tiles = ExtResource("3")
+door = ExtResource("4")
+spike_color = Color(0.85, 0.85, 0.9, 1)
+title_color = Color(0.95, 0.8, 0.35, 1)
+ambient = 6
+ambient_color = Color(1, 0.4, 0.35, 0.8)

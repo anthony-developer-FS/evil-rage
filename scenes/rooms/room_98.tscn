@@ -1,0 +1,126 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/aviary.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/moving_wall.tscn" id="mover"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/push_button.tscn" id="button"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+
+[node name="Room98" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+flappy_dir = 1
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "98. Upstairs"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Ceiling" parent="." instance=ExtResource("block")]
+position = Vector2(0, -64)
+size = Vector2(320, 72)
+
+[node name="CeilingSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 8)
+size = Vector2(320, 8)
+pointing = Vector2(0, 1)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 168)
+size = Vector2(320, 12)
+
+[node name="FloorSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 160)
+size = Vector2(320, 8)
+
+[node name="Perch" parent="." instance=ExtResource("block")]
+position = Vector2(0, 140)
+size = Vector2(24, 8)
+
+[node name="Shelf" parent="." instance=ExtResource("block")]
+position = Vector2(0, 88)
+size = Vector2(240, 8)
+
+[node name="ShelfTop" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 80)
+size = Vector2(240, 8)
+
+[node name="ShelfBottom" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 96)
+size = Vector2(240, 8)
+pointing = Vector2(0, 1)
+
+[node name="Pendulum" parent="." instance=ExtResource("mover")]
+position = Vector2(128, 104)
+size = Vector2(16, 16)
+travel = Vector2(0, 40)
+duration = 0.6
+loop = true
+pause = 1.2
+delay = 0.3
+spikes = 2
+
+[node name="WallSpikesLow" parent="." instance=ExtResource("hazard")]
+position = Vector2(312, 104)
+size = Vector2(8, 56)
+pointing = Vector2(-1, 0)
+
+[node name="WallSpikesHigh" parent="." instance=ExtResource("hazard")]
+position = Vector2(312, 16)
+size = Vector2(8, 24)
+pointing = Vector2(-1, 0)
+
+[node name="Turn" parent="." instance=ExtResource("button")]
+position = Vector2(320, 56)
+rotation = -1.570796
+one_shot = false
+turn = true
+color = Color(0.29, 0.541, 0.878, 1)
+
+[node name="WallSpikesMid" parent="." instance=ExtResource("hazard")]
+position = Vector2(312, 72)
+size = Vector2(8, 16)
+pointing = Vector2(-1, 0)
+
+[node name="Hanger" parent="." instance=ExtResource("block")]
+position = Vector2(112, -64)
+size = Vector2(16, 100)
+
+[node name="HangerSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(112, 36)
+size = Vector2(16, 8)
+pointing = Vector2(0, 1)
+
+[node name="GoalPerch" parent="." instance=ExtResource("block")]
+position = Vector2(0, 64)
+size = Vector2(24, 8)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(12, 140)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(12, 64)
+next_room = "res://scenes/rooms/room_99.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(12, 140)

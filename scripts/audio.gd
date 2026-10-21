@@ -43,6 +43,9 @@ const SFX := {
 	&"saw": preload("res://assets/audio/sfx/saw.wav"),
 	&"bullet": preload("res://assets/audio/sfx/bullet.wav"),
 	&"ghost": preload("res://assets/audio/sfx/ghost.wav"),
+	&"button": preload("res://assets/audio/sfx/button.wav"),
+	&"flap": preload("res://assets/audio/sfx/flap.wav"),
+	&"flip": preload("res://assets/audio/sfx/flip.wav"),
 }
 const MUSIC := preload("res://assets/audio/music/theme.ogg")
 
@@ -68,6 +71,8 @@ const TRAP_SOUNDS := {
 	&"Coin": &"coin",
 	&"Reaper": &"reaper",
 	&"Ghost": &"ghost",
+	&"PushButton": &"button",
+	&"FlipPlatform": &"flip",
 }
 ## Sounds that get a little random pitch so repeats don't sound robotic.
 const JITTER := [&"jump", &"wall_jump", &"land"]
@@ -153,6 +158,7 @@ func _on_node_added(node: Node) -> void:
 		node.landed.connect(_on_landed)
 		node.died.connect(_on_died)
 		node.shield_broken.connect(play.bind(&"shield"))
+		node.flapped.connect(play.bind(&"flap"))
 		if _respawn_pending:
 			_respawn_pending = false
 			play(&"respawn")

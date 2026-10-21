@@ -1,0 +1,82 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/well.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/moving_wall.tscn" id="mover"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+
+[node name="Room94" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+wrap_around = true
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "94. Spin cycle"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="LedgeL" parent="." instance=ExtResource("block")]
+position = Vector2(0, 60)
+size = Vector2(48, 8)
+
+[node name="LedgeR" parent="." instance=ExtResource("block")]
+position = Vector2(256, 60)
+size = Vector2(64, 8)
+
+[node name="WallSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(312, 72)
+size = Vector2(8, 108)
+pointing = Vector2(-1, 0)
+
+[node name="WallSpikesTop" parent="." instance=ExtResource("hazard")]
+position = Vector2(312, -16)
+size = Vector2(8, 60)
+pointing = Vector2(-1, 0)
+
+[node name="SliderA" parent="." instance=ExtResource("mover")]
+position = Vector2(48, 110)
+size = Vector2(48, 8)
+travel = Vector2(160, 0)
+duration = 1.6
+loop = true
+pause = 0.6
+spikes = 1
+
+[node name="SliderB" parent="." instance=ExtResource("mover")]
+position = Vector2(208, 165)
+size = Vector2(48, 8)
+travel = Vector2(-160, 0)
+duration = 1.6
+loop = true
+pause = 0.6
+spikes = 1
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(16, 60)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(296, 60)
+next_room = "res://scenes/rooms/room_95.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(16, 60)
