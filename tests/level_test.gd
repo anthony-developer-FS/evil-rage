@@ -470,9 +470,9 @@ var runs := {
 	},
 	"room_84": {
 		# Face the ghost and hop his bullets while the ferry comes.
-		"solve": [["reflex", 30], ["right", 104], ["tap", "left"], ["idle", 470], ["right", 128], ["idle", 200],
+		"solve": [["reflex", 30], ["right", 104], ["tap", "left"], ["idle", 470], ["right", 148], ["idle", 200],
 			["reflex", 56], ["right", 400]],
-		"naive": [["reflex", 30], ["right", 104], ["idle", 470], ["right", 128], ["idle", 200], ["right", 400]],
+		"naive": [["reflex", 30], ["right", 104], ["idle", 470], ["right", 148], ["idle", 200], ["right", 400]],
 	},
 	"room_85": {
 		# Jump the first portal, which only goes back. Over the wall, duck each saw in a
