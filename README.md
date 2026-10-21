@@ -6,7 +6,7 @@ A punishing 2D precision platformer where the levels lie to you. Built with Godo
 
 1. Install [Godot 4.5](https://godotengine.org/download) (standard build, no .NET needed).
 2. Open Godot, choose **Import**, and select this folder's `project.godot`.
-3. Press F5. The test room loads.
+3. Press F5. Room 1 of the prototype level loads. Beat all six rooms.
 
 Controls: A/D or arrows to move, Space/K/Up to jump, R to restart. Gamepad works too (stick or d-pad, A to jump).
 
@@ -19,15 +19,29 @@ Controls: A/D or arrows to move, Space/K/Up to jump, R to restart. Gamepad works
 | `scripts/game.gd` | Autoload that keeps death counters and taunts across room reloads |
 | `scripts/room.gd` | Base for every room: spawns the player, reloads the room on death |
 | `scenes/objects/` | Reusable pieces: player, block, hazard (spikes), goal, HUD |
-| `scenes/rooms/test_room.tscn` | Movement test room |
-| `tests/movement_test.tscn` | Headless movement checks |
+| `scenes/trolls/` | Troll traps, each a drop-in scene (see below) |
+| `scenes/rooms/room_01.tscn` to `room_06.tscn` | Prototype level, one troll per room, then all of them |
+| `scenes/rooms/test_room.tscn` | Movement sandbox |
+| `tests/` | Headless tests for movement, traps and level beatability |
 
-Rooms reload entirely on death, so every troll trap resets for free. A new room is a scene whose root uses `room.gd` and contains `Player`, `Spawn`, `Goal` and `Hud`.
+## Troll traps
+
+Drop a trap scene into a room and set its `size` in the inspector. In the editor each trap draws an orange outline of its trigger area; in game it is invisible or looks like a normal block.
+
+| Trap | What it does | Tweak |
+| --- | --- | --- |
+| Fake floor | Looks like a block, vanishes when stood on | `delay` adds a shake before it drops |
+| Pop spikes | Hidden until the player enters the trigger, then shoot up | `trigger` rect |
+| Runaway goal | The exit hops to the next point when approached | `flee_points`, `flee_radius` |
+| Invisible block | Appears when hit from below and bonks the player | none |
+| Falling ceiling | Drops when the player walks under, crushes, then becomes a block | `trigger_depth`, `gravity` |
+
+Rooms reload entirely on death, so every troll trap resets for free. A new room is a scene whose root uses `room.gd` and contains `Player`, `Spawn`, `Goal` and `Hud`. Set the goal's `next_room` to chain rooms; leave it empty on the last room.
 
 ## Tests
 
 ```
-godot --headless --path . res://tests/movement_test.tscn
+GODOT=/path/to/godot ./run_tests.sh
 ```
 
-Exits 0 when all checks pass.
+Three suites: `movement_test` checks the controller, `troll_test` checks each trap, and `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you. If you change a room, update its runs in `tests/level_test.gd`.

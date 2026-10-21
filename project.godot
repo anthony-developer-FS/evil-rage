@@ -5,7 +5,7 @@ config_version=5
 [application]
 
 config/name="Evil Rage"
-run/main_scene="res://scenes/rooms/test_room.tscn"
+run/main_scene="res://scenes/rooms/room_01.tscn"
 config/features=PackedStringArray("4.5")
 
 [autoload]
