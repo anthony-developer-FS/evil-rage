@@ -55,6 +55,7 @@ position = Vector2(24, 160)
 
 [node name="Goal" parent="." instance=ExtResource("runaway")]
 position = Vector2(240, 160)
+next_room = "res://scenes/rooms/room_07.tscn"
 flee_points = PackedVector2Array(296, 160)
 
 [node name="Player" parent="." instance=ExtResource("player")]

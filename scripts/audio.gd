@@ -34,6 +34,8 @@ const TRAP_SOUNDS := {
 	&"RunawayGoal": &"runaway_goal",
 	&"InvisibleBlock": &"invisible_block",
 	&"FallingCeiling": &"falling_ceiling",
+	&"Spring": &"jump",
+	&"DecoyGoal": &"pop_spikes",
 }
 ## Sounds that get a little random pitch so repeats don't sound robotic.
 const JITTER := [&"jump", &"wall_jump", &"land"]

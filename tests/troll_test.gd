@@ -10,6 +10,8 @@ const POP_SPIKES := preload("res://scenes/trolls/pop_spikes.tscn")
 const RUNAWAY_GOAL := preload("res://scenes/trolls/runaway_goal.tscn")
 const INVISIBLE_BLOCK := preload("res://scenes/trolls/invisible_block.tscn")
 const FALLING_CEILING := preload("res://scenes/trolls/falling_ceiling.tscn")
+const DECOY_GOAL := preload("res://scenes/trolls/decoy_goal.tscn")
+const SPRING := preload("res://scenes/objects/spring.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -23,6 +25,9 @@ func _ready() -> void:
 	await _run("invisible block appears and bonks", _test_invisible_block)
 	await _run("falling ceiling crushes the player", _test_falling_ceiling)
 	await _run("falling ceiling lands on the floor", _test_ceiling_lands)
+	await _run("decoy goal kills instead of finishing", _test_decoy_goal)
+	await _run("spring gives a short hop when walked onto", _test_spring_tap)
+	await _run("spring launches high when jump is held", _test_spring_hold)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
 
@@ -117,3 +122,42 @@ func _test_ceiling_lands() -> bool:
 	_player.position = Vector2(20, 159)
 	await _frames(120)
 	return is_equal_approx(ceiling.position.y + ceiling.size.y, 160.0)
+
+
+func _test_decoy_goal() -> bool:
+	var decoy: DecoyGoal = _place(DECOY_GOAL, Vector2(80, 160))
+	var reached := [false]
+	decoy.reached.connect(func() -> void: reached[0] = true)
+	Input.action_press("move_right")
+	await _frames(60)
+	return _player.is_dead and not reached[0]
+
+
+## Peak height reached after walking onto a spring, with or without jump held.
+func _spring_peak(hold_jump: bool) -> float:
+	var spring: Spring = _place(SPRING, Vector2(60, 156))
+	spring.power = 480.0
+	if hold_jump:
+		# Jump from further back so jump is held, not freshly pressed, on landing.
+		_player.position = Vector2(20, 159)
+		Input.action_press("jump")
+	Input.action_press("move_right")
+	var peak := 160.0
+	for i in 120:
+		await _frames(1)
+		peak = minf(peak, _player.global_position.y)
+		if _player.global_position.x > 56.0:
+			Input.action_release("move_right")
+	return 160.0 - peak
+
+
+func _test_spring_tap() -> bool:
+	var height := await _spring_peak(false)
+	print("      spring bounce walked on: %.1f px" % height)
+	return height > 20.0 and height < 40.0
+
+
+func _test_spring_hold() -> bool:
+	var height := await _spring_peak(true)
+	print("      spring bounce jump held: %.1f px" % height)
+	return height > 100.0

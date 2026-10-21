@@ -12,6 +12,8 @@ const POP_SPIKES := preload("res://scenes/trolls/pop_spikes.tscn")
 const INVISIBLE_BLOCK := preload("res://scenes/trolls/invisible_block.tscn")
 const FALLING_CEILING := preload("res://scenes/trolls/falling_ceiling.tscn")
 const RUNAWAY_GOAL := preload("res://scenes/trolls/runaway_goal.tscn")
+const DECOY_GOAL := preload("res://scenes/trolls/decoy_goal.tscn")
+const SPRING := preload("res://scenes/objects/spring.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -32,6 +34,8 @@ func _ready() -> void:
 	await _run("invisible block plays", _test_invisible_block)
 	await _run("falling ceiling rumbles, then thuds", _test_falling_ceiling)
 	await _run("runaway goal plays on each hop", _test_runaway_goal)
+	await _run("decoy goal bites, then death plays", _test_decoy_goal)
+	await _run("spring plays on bounce", _test_spring)
 	await _run("volume changes apply to the bus", _test_volume)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
@@ -135,6 +139,20 @@ func _test_pop_spikes() -> bool:
 	Input.action_press("move_right")
 	await _frames(40)
 	return &"pop_spikes" in _heard
+
+
+func _test_decoy_goal() -> bool:
+	_place(DECOY_GOAL, Vector2(80, 160))
+	Input.action_press("move_right")
+	await _frames(40)
+	return &"pop_spikes" in _heard and &"death" in _heard
+
+
+func _test_spring() -> bool:
+	_place(SPRING, Vector2(60, 156))
+	Input.action_press("move_right")
+	await _frames(30)
+	return &"jump" in _heard
 
 
 func _test_invisible_block() -> bool:

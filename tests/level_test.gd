@@ -2,6 +2,7 @@ extends Node
 ## Proves every prototype room can be beaten by playing a scripted run through it,
 ## and that the obvious naive route fails because of the troll. Run with:
 ##   godot --headless --path . res://tests/level_test.tscn
+## Pass room names after "--" to check only those rooms, e.g. "-- room_07 room_08".
 ## Exits with code 0 when every check passes, 1 otherwise.
 ##
 ## Script commands: ["right", x] / ["left", x] hold a direction until the player
@@ -9,7 +10,16 @@ extends Node
 ## current direction. ["hold", frames] keeps the direction. ["idle", frames] lets go.
 ## After the script ends the current direction is held until the run resolves.
 
-const RUNS := {
+## Room 9: walk into the shaft, then wall jump between its walls until the top.
+const SHAFT_CLIMB := [
+	["right", 162.5], ["jump", 20], ["jump", 8],
+	["left", 141.5], ["jump", 8], ["right", 162.5], ["jump", 8],
+	["left", 141.5], ["jump", 8], ["right", 162.5], ["jump", 8],
+	["left", 141.5], ["jump", 8], ["right", 162.5], ["jump", 8],
+	["left", 141.5], ["jump", 8],
+]
+
+var runs := {
 	"room_01": {
 		"solve": [["right", 84], ["jump", 60], ["idle", 20], ["right", 142], ["jump", 60], ["right", 400]],
 		"naive": [["right", 84], ["jump", 60], ["idle", 20], ["right", 148], ["jump", 8], ["right", 400]],
@@ -34,15 +44,43 @@ const RUNS := {
 		"solve": [["right", 50], ["jump", 60], ["right", 148], ["jump", 60], ["right", 400]],
 		"naive": [["right", 400]],
 	},
+	"room_07": {
+		"solve": [["right", 84], ["jump", 60], ["right", 150], ["jump", 60], ["right", 200], ["jump", 60], ["idle", 40], ["left", 240], ["jump", 60], ["left", 0]],
+		"naive": [["right", 84], ["jump", 60], ["right", 400]],
+	},
+	"room_08": {
+		"solve": [["right", 400]],
+		"naive": [["right", 100], ["jump", 200], ["right", 400]],
+	},
+	"room_09": {
+		# Same climb both times. Hopping off it onto the trapdoor is the trap.
+		"solve": SHAFT_CLIMB + [["right", 175], ["idle", 30], ["right", 177], ["jump", 60], ["right", 400]],
+		"naive": SHAFT_CLIMB + [["right", 400]],
+	},
+	"room_10": {
+		"solve": [["right", 40], ["jump", 200], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_11": {
+		"solve": [["right", 236], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_12": {
+		"solve": [["right", 48], ["jump", 60], ["right", 140], ["jump", 60], ["right", 196], ["jump", 200], ["right", 400]],
+		"naive": [["right", 76], ["jump", 60], ["right", 400]],
+	},
 }
 
 var _failures := 0
 
 
 func _ready() -> void:
-	for room_name in RUNS:
+	var only := OS.get_cmdline_user_args()
+	for room_name in runs:
+		if not only.is_empty() and not room_name in only:
+			continue
 		for kind in ["solve", "naive"]:
-			var result: String = await _play(room_name, RUNS[room_name][kind])
+			var result: String = await _play(room_name, runs[room_name][kind])
 			var ok: bool = (result == "goal") == (kind == "solve")
 			print("%s  %s %s -> %s" % ["ok  " if ok else "FAIL", room_name, kind, result])
 			if not ok:
@@ -60,6 +98,12 @@ func _play(room_name: String, script: Array) -> String:
 	var state := {"result": ""}
 	room.player.died.connect(func() -> void: state.result = "dead")
 	room.get_node("Goal").reached.connect(func() -> void: state.result = "goal")
+	# Set LEVEL_TRACE=1 to print the player's path while writing a run.
+	var trace := func() -> void:
+		if Engine.get_physics_frames() % 6 == 0 and state.result == "":
+			print("      ", room.player.global_position.round(), " v", room.player.velocity.round())
+	if OS.get_environment("LEVEL_TRACE") != "":
+		get_tree().physics_frame.connect(trace)
 
 	var dir := ""
 	for cmd in script:
@@ -87,6 +131,8 @@ func _play(room_name: String, script: Array) -> String:
 	await _frames(600, state)
 	if state.result == "":
 		print("      timed out with player at ", room.player.global_position, " goal at ", room.get_node("Goal").global_position)
+	if get_tree().physics_frame.is_connected(trace):
+		get_tree().physics_frame.disconnect(trace)
 	_set_dir("")
 	Input.action_release("jump")
 	room.queue_free()
