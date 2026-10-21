@@ -828,6 +828,110 @@ def manor_backdrop():
     return img
 
 
+def switchboard_backdrop():
+    rng = np.random.default_rng(181)
+    img = canvas(W, H, "#121620")
+    vgrad(img, 0, H, ["#0e121a", "#141a24", "#18202c", "#121820"])
+    # Banks of control panels, each a bezel full of little lamps and a dial or two.
+    for row, y in enumerate((14, 66)):
+        for x in range(6 - row * 18, W, 52):
+            rect(img, x, y, 46, 44, "#232a36")
+            rect(img, x, y, 46, 1, "#36404e")
+            rect(img, x, y + 43, 46, 1, "#0c1016")
+            rect(img, x + 3, y + 4, 40, 36, "#1a2029")
+            for ly in range(y + 8, y + 22, 5):
+                for lx in range(x + 7, x + 40, 6):
+                    roll = rng.random()
+                    col = "#7a2a2a" if roll < 0.2 else "#2a6a3a" if roll < 0.45 else "#7a6a2a" if roll < 0.55 else "#2a303a"
+                    rect(img, lx, ly, 2, 2, col)
+            if rng.random() < 0.7:
+                dial = radial(x + 14, y + 31, 6)
+                paint(img, dial > 0, "#3a4250")
+                paint(img, dial > 0.3, "#5a6270")
+                rect(img, x + 14, y + 27, 1, 4, "#c84a3a")
+            for k in range(3):
+                rect(img, x + 26 + k * 5, y + 27, 3, 8, "#2a303a")
+                rect(img, x + 26 + k * 5, y + 27 + int(rng.integers(0, 6)), 3, 2, "#9aa2b0")
+    # Cables sagging down from the ceiling between the banks.
+    for x0 in (30, 120, 214, 290):
+        span = int(rng.integers(30, 50))
+        for i in range(span):
+            y = int(6 + 22 * np.sin(np.pi * i / span))
+            img[min(y, H - 1), min(x0 + i, W - 1)] = hexc("#2e3542")
+            img[min(y + 1, H - 1), min(x0 + i, W - 1)] = hexc("#1e242e")
+    # A row of big levers along the bottom of the far wall, all thrown the same way.
+    for x in range(20, W, 64):
+        rect(img, x, 126, 14, 6, "#262c36")
+        rect(img, x + 6, 114, 2, 12, "#3a4250")
+        rect(img, x + 5, 112, 4, 3, "#5a2a2a")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 120) / 60, 0, 1) * 0.6, "#0a0d12", levels=4)
+    return img
+
+
+def well_backdrop():
+    rng = np.random.default_rng(191)
+    img = canvas(W, H, "#141a18")
+    # The inside of a round shaft: stone courses, darker toward both sides as
+    # the wall curves away, and the same top and bottom so the fall loops cleanly.
+    masonry(img, 0, H, 10, (18, 30), 192, "#26302c", "#121816", "#323e38", "#1e2622", "#1a2a20")
+    xs = np.arange(W)[None, :] * np.ones((H, 1))
+    curve = np.abs(xs - W / 2) / (W / 2)
+    blend(img, curve ** 2 * 0.85, "#0a0e0c", levels=5)
+    # Moss and dripping streaks.
+    moss = noise2d(W, H, 193, 14)
+    paint(img, (moss > 0.74) & (curve < 0.8), "#1e3222")
+    paint(img, (moss > 0.82) & (curve < 0.7), "#24402a")
+    for _ in range(14):
+        x, y = int(rng.integers(20, W - 20)), int(rng.integers(0, H - 30))
+        rect(img, x, y, 1, int(rng.integers(10, 30)), "#1c2a26")
+    # Roots poking out of the wall, and a rope with a bucket far below.
+    for _ in range(6):
+        x, y = int(rng.integers(30, W - 30)), int(rng.integers(10, H - 20))
+        for i in range(int(rng.integers(6, 14))):
+            img[min(y + i, H - 1), min(x + (i // 3) * (1 if x < W / 2 else -1), W - 1)] = hexc("#3a2a1a")
+    rect(img, 96, 0, 1, H, "#4a3a24")
+    rect(img, 97, 0, 1, H, "#2e2416")
+    for y in range(0, H, 6):
+        img[y, 96] = hexc("#6a5434")
+    return img
+
+
+def aviary_backdrop():
+    rng = np.random.default_rng(201)
+    img = canvas(W, H, "#2a1e3a")
+    vgrad(img, 0, H, ["#1e1a36", "#2e2244", "#4a2e4e", "#6a3e4e", "#8a5a50"])
+    blend(img, radial(80, 170, 120, squash=0.5) * 0.5, "#b0704a", levels=4)
+    # Clouds drifting at sunset.
+    for i, (y, col, lit) in enumerate([(108, "#5a3a54", "#8a5a62"), (136, "#6e4a58", "#a0706a")]):
+        tops = y + noise1d(W, 202 + i, 26) * 16
+        paint(img, column_mask(tops, False), col)
+        paint(img, column_mask(tops + 2, False) ^ column_mask(tops, False), lit)
+    # The bars of a giant cage, curving in at the top to a ring.
+    for x in range(8, W, 26):
+        bow = int(18 * (1 - ((x - W / 2) / (W / 2)) ** 2))
+        rect(img, x, 22 - bow // 2, 2, H, "#3a2a1e")
+        rect(img, x, 22 - bow // 2, 1, H, "#6a4e2e")
+    for y in (22, 96):
+        rect(img, 0, y, W, 2, "#3a2a1e")
+        rect(img, 0, y, W, 1, "#7a5a32")
+    # Perches with a swing, and feathers caught in the air.
+    rect(img, 30, 70, 50, 2, "#5a3a20")
+    rect(img, 230, 52, 60, 2, "#5a3a20")
+    rect(img, 170, 0, 1, 40, "#4a3420")
+    rect(img, 186, 0, 1, 40, "#4a3420")
+    rect(img, 166, 40, 25, 2, "#6a4628")
+    for _ in range(9):
+        fx, fy = int(rng.integers(10, W - 10)), int(rng.integers(30, 150))
+        col = ("#e8d8c0", "#c0a080", "#e0b070")[int(rng.integers(0, 3))]
+        for i in range(4):
+            img[fy + i // 2, fx + i] = hexc(col)
+        img[fy + 1, fx] = hexc(col)
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 150) / 30, 0, 1) * 0.5, "#3a2438", levels=3)
+    return img
+
+
 # --- tiles ------------------------------------------------------------------
 # Each painter draws one 8x8 tile from a variant index. Top tiles sit on the top
 # row of every block; fill tiles cover the rest.
@@ -1118,6 +1222,46 @@ def manor_tile(top, v):
         t[1, :] = hexc("#5e4232")
     elif v == 2:
         t[5, 2] = hexc("#6a6a74")
+    return t
+
+
+def switchboard_tile(top, v):
+    rng = np.random.default_rng(1800 + v + top * 10)
+    t = canvas(T, T, "#4a5260")
+    speckle(t, rng, "#3e4652", 5)
+    # Riveted steel plates.
+    t[7, :] = hexc("#2e343e")
+    t[:, 7] = hexc("#2e343e")
+    t[1, 1] = t[1, 6] = t[6, 1] = hexc("#7a8290")
+    if top:
+        # Hazard stripes along the walkway.
+        for x in range(T):
+            t[0:2, x] = hexc("#e0b020" if (x + v * 2) // 2 % 2 == 0 else "#1e1e22")
+        t[2, :] = hexc("#5e6674")
+    elif v == 2:
+        t[3:5, 3:5] = hexc("#5e6674")
+    return t
+
+
+def well_tile(top, v):
+    return brick_tile(top, v, "#4a5650", "#2a322e", "#5e6a62", "#3a443e", "#3e7a3a", "#6a8a62")
+
+
+def aviary_tile(top, v):
+    rng = np.random.default_rng(2000 + v + top * 10)
+    t = canvas(T, T, "#7a5430")
+    # Woven twigs, like a giant nest.
+    for y in range(T):
+        for x in range(T):
+            if (x + y + v) % 4 == 0:
+                t[y, x] = hexc("#5a3a20")
+            elif (x - y + v) % 4 == 0:
+                t[y, x] = hexc("#9a7040")
+    speckle(t, rng, "#4a3018", 3)
+    if top:
+        t[0, :] = hexc("#d8b070")
+        t[1, :] = hexc("#b08a50")
+        t[0, (v * 3 + 1) % T] = hexc("#f0e0b0")
     return t
 
 
@@ -1455,6 +1599,63 @@ DOORS = {
         "Ww#ggGGgg#wW",
         "WW#ggGGgg#WW",
     ]),
+    # A steel bulkhead with rivets and a warning lamp over it.
+    "switchboard": ({"#": "#1e222a", "P": "#7a8290", "p": "#4a5260", "R": "#e04848", "Y": "#e0b020"}, [
+        ".....RR.....",
+        "....pRRp....",
+        "pPPPPPPPPPPp",
+        "PpYpYpYpYpYP",
+        "Pp#gggggg#pP",
+        "PP#ggGGgg#PP",
+        "Pp#ggGGgg#pP",
+        "Pp#ggGGgg#pP",
+        "PP#ggGGgg#PP",
+        "Pp#ggGGgg#pP",
+        "Pp#ggGGgg#pP",
+        "PP#ggGGgg#PP",
+        "Pp#ggGGgg#pP",
+        "Pp#ggGGgg#pP",
+        "PP#ggGGgg#PP",
+        "Pp#ggGGgg#pP",
+    ]),
+    # A mossy stone arch with a pulley and rope hanging over it.
+    "well": ({"#": "#121816", "S": "#6a766e", "s": "#46524a", "M": "#3e7a3a", "W": "#8a6a3a", "w": "#5a4224"}, [
+        "wwwwwWWwwwww",
+        ".....WW.....",
+        "...SSWWSS...",
+        "..SsMssMsS..",
+        ".Ss#gggg#sS.",
+        "SsM#gGGg#MsS",
+        "Ss#ggGGgg#sS",
+        "SM#ggGGgg#MS",
+        "Ss#ggGGgg#sS",
+        "Ss#ggGGgg#sS",
+        "SM#ggGGgg#sS",
+        "Ss#ggGGgg#MS",
+        "Ss#ggGGgg#sS",
+        "SM#ggGGgg#sS",
+        "Ss#ggGGgg#sS",
+        "SS#ggGGgg#SS",
+    ]),
+    # A birdcage door: brass bars over the glow, a hook on top.
+    "aviary": ({"#": "#2a1e14", "B": "#d8a848", "b": "#8a6428", "F": "#e8d8c0"}, [
+        ".....BB.....",
+        ".....bB.....",
+        "...bBBBBb...",
+        "..bB#gg#Bb..",
+        ".bB#gBgBg#Bb",
+        "bB#ggBgBgg#B",
+        "BbBggBgBggBb",
+        "Bb#ggBGBgg#b",
+        "Bb#ggBGBgg#b",
+        "BbBggBGBggBb",
+        "Bb#ggBGBgg#b",
+        "Bb#ggBGBgg#b",
+        "BbBggBGBggBb",
+        "Bb#ggBGBgg#b",
+        "Bb#ggBGBgg#F",
+        "BBBBBBBBBBBB",
+    ]),
 }
 
 
@@ -1490,6 +1691,9 @@ THEMES = {
     "hoard": (hoard_backdrop, hoard_tile),
     "crypt": (crypt_backdrop, crypt_tile),
     "manor": (manor_backdrop, manor_tile),
+    "switchboard": (switchboard_backdrop, switchboard_tile),
+    "well": (well_backdrop, well_tile),
+    "aviary": (aviary_backdrop, aviary_tile),
 }
 
 

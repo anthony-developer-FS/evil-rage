@@ -6,9 +6,9 @@ A punishing 2D precision platformer where the levels lie to you. Built with Godo
 
 1. Install [Godot 4.5](https://godotengine.org/download) (standard build, no .NET needed).
 2. Open Godot, choose **Import**, and select this folder's `project.godot`.
-3. Press F5. The level select opens: pick a world, then a room. Beat all eighty-five rooms across seventeen worlds.
+3. Press F5. The level select opens: pick a world, then a room. Beat all one hundred rooms across twenty worlds.
 
-Controls: A/D or arrows to move, Esc (or Start) to pause and open the level select, Space/K/Up to jump, R to restart, F11 or Alt+Enter to toggle fullscreen, `-` and `=` for volume, M to toggle music. Gamepad works too (stick or d-pad, A to jump).
+Controls: A/D or arrows to move, Esc (or Start) to pause and open the level select, Space/K/Up to jump, R to restart, F11 or Alt+Enter to toggle fullscreen, `-` and `=` for volume, M to toggle music. Gamepad works too (stick or d-pad, A to jump). In the Aviary's flappy rooms left and right do nothing: the explorer flies on by themselves and jump flaps.
 
 ## Resolution
 
@@ -49,7 +49,10 @@ The world is drawn into a 320x180 viewport and scaled up by whole numbers, so pi
 | `scenes/rooms/room_66.tscn` to `room_70.tscn` | The Rift Labyrinth: 3x3 mazes of portals where only one chain reaches the exit, with colors that first help and then lie |
 | `scenes/rooms/room_71.tscn` to `room_75.tscn` | The Golden Hoard: big coins to collect, coins that explode, and coins that make a bridge over a void |
 | `scenes/rooms/room_76.tscn` to `room_80.tscn` | The Reaper's Crypt: Death rises across the room and throws saws that fly, grow or chase, and bullets |
-| `scenes/rooms/room_81.tscn` to `room_85.tscn` | The Haunted Manor: ghosts that come after you whenever you look away, then everything at once. Room 85 is the last |
+| `scenes/rooms/room_81.tscn` to `room_85.tscn` | The Haunted Manor: ghosts that come after you whenever you look away, then everything at once |
+| `scenes/rooms/room_86.tscn` to `room_90.tscn` | The Switchboard: buttons that bring in bridges, open and slam doors, and flip spiked slabs over |
+| `scenes/rooms/room_91.tscn` to `room_95.tscn` | The Endless Well: fall out of the bottom and come back in at the top, dodging shelves that change every lap and sliders that sweep the shaft |
+| `scenes/rooms/room_96.tscn` to `room_100.tscn` | The Aviary: flappy rooms where jump flaps and only a button turns you round. Room 100 is the last |
 | `art/monsters/`, `tools/make_monsters.py` | Death and ghost sprite sheets, generated from ASCII like the explorer, with `resources/reaper_frames.tres` and `resources/ghost_frames.tres` |
 | `scripts/world_theme.gd`, `resources/themes/` | One theme resource per world: backdrop, tiles, exit door, spike and title colors, ambient motes |
 | `scripts/backdrop.gd` | Draws the room's backdrop and its fireflies, drips, dust or embers |
@@ -85,6 +88,10 @@ Drop a trap scene into a room and set its `size` in the inspector. In the editor
 | Death | Rises at a random spot in `area` on the far side of the screen from the player, then casts what `pattern` spells out, one letter at a time: `s` a saw at the player, `g` a saw that stops where the player was and grows, `c` a saw that chases (it breaks on blocks), `b` a bullet fired level across the room, `.` a pause. He raises his arms and a glow gathers for `windup` seconds before each. If the player gets within `too_close` he sinks and rises again across the room. Touching him kills | `area`, `pattern`, `first_delay`, `interval`, `windup`, `trigger`, `too_close`, `saw_speed`, `bullet_speed` |
 | Ghost | Hides its face while the player faces it. Whenever they look away it drifts after them, through walls. Touching it kills. With a `trigger` it sleeps, faded, until the player enters it | `speed`, `trigger` |
 | Treasure chest | Opens on touch and gives the player something until they die: see below | `gift`, `wakes` |
+| Push button | Pressed by touching it: walking over it, jumping into it on a ceiling, flying into it on a wall (rotate it to put it there). Presses each of its `targets`: moving walls with `on_button` move (and move back on the next press), switch blocks switch and flip platforms flip. Any other node is switched out of the room, or back in if it started hidden and disabled, which makes a button that brings in spikes. With `turn` it also turns a flappy player round. In the editor a line runs to each target | `targets`, `one_shot`, `turn`, `color` |
+| Switch block | A block a button turns on and off. Solid, it has a colored rim; off, only a dotted outline is left. Switched on around the player, it crushes | `solid`, `rim` |
+| Flip platform | A slab with spikes on one face. A button turns it over, so the spikes go from underneath to on top or back. `delay` holds the flip back, `flip_back` turns it back over after a while, `interval` flips it on its own | `spikes_up`, `delay`, `flip_back`, `interval`, `flip_time` |
+| Wrap stage | Like a retry variant, but for laps of a wraparound room: its children only exist while the player has wrapped round between `min_wraps` and `max_wraps` times | `min_wraps`, `max_wraps` |
 
 A spring (`scenes/objects/spring.tscn`) is not a trap but rooms use it as one. Place it on the floor: walking onto it gives a short hop, and landing on it with jump held launches the player about `power² / 1800` pixels. Rooms 8 and 10 lean on that difference.
 
@@ -113,6 +120,10 @@ Every chest looks the same. The first ones really help, so players learn to grab
 
 A room's `jump_scale` multiplies the player's jump. The Moon Observatory sets 1.9: a held jump reaches the ceiling, a tap stays low, and anything between depends on how long jump is held.
 
+A room with `wrap_around` on has no bottom: falling out of it brings the player back in at the top, still falling, and flying out of the top brings them in at the bottom. The room counts each time round in `wraps` and emits `wrapped`, which wrap stages listen to. Keep the band along the top and bottom edges clear where the player is meant to pass through.
+
+A room's `flappy_dir` makes it a flappy room: 1 flies right and -1 flies left. The player moves forward at a steady `flap_speed` and every press of jump is a flap of `flap_velocity`, in mid-air as often as they like (both are in the movement tuning). Left and right do nothing, there is no wall slide or wall jump, and only a button with `turn` sends them back the other way. Flaps work with gravity flipped too, pushing toward the ceiling's floor.
+
 Rooms reload entirely on death, so every troll trap resets for free. A new room is a scene whose root uses `room.gd` and contains `Player`, `Spawn`, `Goal` and `Hud`. Set the goal's `next_room` to chain rooms; leave it empty on the last room.
 
 ## Worlds
@@ -138,6 +149,9 @@ Each room's root has a `world_theme` (a `WorldTheme` resource in `resources/them
 | The Golden Hoard | 71 to 75 | Sparkles |
 | The Reaper's Crypt | 76 to 80 | Embers |
 | The Haunted Manor | 81 to 85 | Fireflies |
+| The Switchboard | 86 to 90 | Sparkles |
+| The Endless Well | 91 to 95 | Drips |
+| The Aviary | 96 to 100 | Wind |
 
 Tiles are laid on a grid aligned to the room, so a fake floor next to a real block joins without a seam. To add a world, add a painter pair to `THEMES` in `tools/make_themes.py`, run it (needs numpy), and create a theme resource pointing at the new images. The images are a few KB each and are stored as plain git objects rather than LFS, like the audio.
 
@@ -145,7 +159,7 @@ Tiles are laid on a grid aligned to the room, so a fake floor next to a real blo
 
 Everything you hear is synthesized by `tools/make_audio.py` (needs Python with numpy, and ffmpeg for the music). No third-party samples are used, so the audio is ours to ship. See `assets/audio/LICENSE.md`.
 
-`scripts/audio.gd` is an autoload that listens rather than being called: when a `Player`, `Goal` or troll trap enters the tree it connects their signals to sounds. The player emits `jumped`, `wall_jumped`, `landed`, `died` and `shield_broken`; each trap emits `triggered` when it springs (the falling ceiling also emits `landed`, creeping spikes emit `retracted` when they sink, and a chest emits `cursed` when what was inside is bad). A bomb coin also emits `lit` and `exploded`, and Death emits `cast` with `saw` or `bullet` each time something leaves his hands. To give a new trap a sound, add a `triggered` signal, emit it, and add the class to `TRAP_SOUNDS` in `audio.gd`.
+`scripts/audio.gd` is an autoload that listens rather than being called: when a `Player`, `Goal` or troll trap enters the tree it connects their signals to sounds. The player emits `jumped`, `wall_jumped`, `landed`, `died` and `shield_broken`; each trap emits `triggered` when it springs (the falling ceiling also emits `landed`, creeping spikes emit `retracted` when they sink, and a chest emits `cursed` when what was inside is bad). A bomb coin also emits `lit` and `exploded`, and Death emits `cast` with `saw` or `bullet` each time something leaves his hands. The player emits `flapped` on each flap in a flappy room. To give a new trap a sound, add a `triggered` signal, emit it, and add the class to `TRAP_SOUNDS` in `audio.gd`.
 
 There are three buses in `default_bus_layout.tres`: Master, Music and SFX. Volumes are saved to `user://settings.cfg`, and `Audio.set_volume(bus, 0..1)` is ready for an options menu. Headless runs skip playback but still emit `Audio.played`, which the audio tests use.
 
@@ -155,4 +169,4 @@ There are three buses in `default_bus_layout.tres`: Master, Music and SFX. Volum
 GODOT=/path/to/godot ./run_tests.sh
 ```
 
-Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run, and `LEVEL_KIND=solve` (or `naive`) to play only one of the two runs. Rooms with creeping spikes wait a set number of frames on the safe square; the frost leaves about a third of a second between sinking and chasing, so if you retune a room's timings, retune its wait too. Rooms with retry variants (33 and 35) also have `retry_solve` and `retry_naive` runs, played as if the player had already died once there. For mirrored rooms, `["key", "left", x]` holds a key until the player crosses `x` from either side, since the left key may be walking them right. Rooms with Death or ghosts need a player who reacts: `["until_cast"]` waits for Death's next throw, `["until_clear"]` until nothing he threw is still flying, `["until_near", px]` until a saw, bullet or ghost comes that close, `["reflex", px]` hops whenever a saw or bullet gets within `px`, and `["tap", "left"]` turns the player round on the spot. `["warp"]` keeps going until a portal moves the player. Where Death appears is random, so rooms with him are played with five seeds, and every one has to pass.
+Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run, and `LEVEL_KIND=solve` (or `naive`) to play only one of the two runs. Rooms with creeping spikes wait a set number of frames on the safe square; the frost leaves about a third of a second between sinking and chasing, so if you retune a room's timings, retune its wait too. Rooms with retry variants (33 and 35) also have `retry_solve` and `retry_naive` runs, played as if the player had already died once there. For mirrored rooms, `["key", "left", x]` holds a key until the player crosses `x` from either side, since the left key may be walking them right. Rooms with Death or ghosts need a player who reacts: `["until_cast"]` waits for Death's next throw, `["until_clear"]` until nothing he threw is still flying, `["until_near", px]` until a saw, bullet or ghost comes that close, `["reflex", px]` hops whenever a saw or bullet gets within `px`, and `["tap", "left"]` turns the player round on the spot. `["warp"]` keeps going until a portal moves the player. In wraparound rooms `["wrap"]` keeps going until the player next leaves through the bottom or the top. In flappy rooms `["fly", y, x]` flaps whenever the player sinks below `y`, as someone tapping to hold a height would, until they cross `x` from either side (a turn button can send them back across it), and `["fly", y, "wrap"]` flaps until the room wraps round. Where Death appears is random, so rooms with him are played with five seeds, and every one has to pass.

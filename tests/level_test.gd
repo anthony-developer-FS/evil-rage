@@ -24,6 +24,12 @@ extends Node
 ## whatever else the script is doing, until ["reflex", 0]. Death appears at a random spot,
 ## so rooms with him are played with several seeds; every one has to pass.
 ##
+## Flappy rooms: ["fly", y, x] flaps whenever the player sinks below y, as a person
+## tapping to hold a height would, until they cross x from either side. A turn
+## button can send them back across it. ["fly", y, "wrap"] flaps until the room wraps. Wraparound rooms: ["wrap"] keeps going until
+## the player next leaves through the bottom or the top, or walks that way first
+## with ["wrap", "right"].
+##
 ## Rooms that change after a death also get "retry_solve" and "retry_naive" runs,
 ## played as if the player had already died once in the room.
 
@@ -483,6 +489,92 @@ var runs := {
 			["until_clear"], ["jump", 60, "right"], ["right", 400]],
 		"naive": [["right", 400]],
 	},
+	# The Switchboard. Buttons that work walls, bridges and platforms.
+	"room_86": {
+		# The button puts a bridge over the pit. Jumping it, as if it were a trap, does not.
+		"solve": [["right", 400]],
+		"naive": [["right", 84], ["jump", 60], ["right", 400]],
+	},
+	"room_87": {
+		# The first button opens the door. The one in the doorway shuts it on your head.
+		"solve": [["right", 180], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_88": {
+		# The button that flips the spikes off the bridge is behind you.
+		"solve": [["left", 14], ["idle", 30], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_89": {
+		# The slabs turn safe a moment after the button, then turn back. Wait, then run.
+		"solve": [["right", 88], ["idle", 40], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_90": {
+		# The button on the floor is the trap; the one in the ceiling opens the door.
+		# Ride the ferry, then cross the slab while its spikes hang underneath.
+		"solve": [["right", 34], ["idle", 20], ["jump", 30], ["idle", 40], ["right", 62], ["jump", 60], ["right", 140], ["idle", 480], ["right", 180], ["idle", 350], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	# The Endless Well. Falling out of the bottom brings you back in at the top.
+	"room_91": {
+		# Drop down the hole and steer onto the far side. The stepping stone bites.
+		"solve": [["right", 400]],
+		"naive": [["right", 112], ["jump", 30], ["right", 400]],
+	},
+	"room_92": {
+		# A shelf of spikes on every lap, on alternate sides. The floor comes on lap three.
+		"solve": [["left", 144], ["idle", 1], ["wrap"], ["wrap"], ["right", 166], ["idle", 1], ["wrap"], ["left", 0]],
+		"naive": [["left", 176], ["idle", 1]],
+	},
+	"room_93": {
+		# Land on the bell between the spikes, which brings the hatch in, then hop off
+		# and come round onto it.
+		"solve": [["right", 112], ["idle", 120], ["jump", 30, "right"], ["right", 220], ["idle", 120], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_94": {
+		# Two spiked sliders sweep the shaft. Wait for them to part, drop, and drift right
+		# through the gaps they leave onto the far ledge. Hugging the right wall is spikes.
+		"solve": [["idle", 102], ["right", 300], ["idle", 1]],
+		"naive": [["right", 400]],
+	},
+	"room_95": {
+		# Past the slider onto the bell, then off it and round onto the hatch.
+		"solve": [["idle", 60], ["right", 120], ["idle", 1], ["wrap"], ["right", 166], ["idle", 200], ["jump", 30, "right"],
+			["right", 400]],
+		"naive": [["right", 400]],
+	},
+	# The Aviary. Left and right do nothing; the player flies on and jump flaps.
+	"room_96": {
+		# Flap through the gaps in the pipes, then let go over the pad.
+		"solve": [["fly", 112, 150], ["fly", 88, 236], ["fly", 140, 286]],
+		"naive": [["idle", 600]],
+	},
+	"room_97": {
+		# The way out is behind you. Hit the button between the spikes on the far
+		# wall to turn round.
+		"solve": [["fly", 100, 176], ["fly", 132, 300], ["fly", 132, 250], ["fly", 100, 140], ["fly", 56, 0]],
+		"naive": [["fly", 100, 400]],
+	},
+	"room_98": {
+		# Under the press while it is up, climb past the end of the shelf before the
+		# spikes on the wall, turn on the button and fly home along the top.
+		"solve": [["fly", 150, 90], ["fly", 140, 250], ["fly", 70, 300], ["fly", 70, 250], ["fly", 76, 0]],
+		"naive": [["fly", 150, 400]],
+	},
+	"room_99": {
+		# Past the field gravity points up and every flap pushes down. Turn on the
+		# button high on the wall and fall up into the door hanging from the ceiling.
+		"solve": [["fly", 110, 150], ["fly", 90, 230], ["fly", 44, 300], ["fly", 44, 250], ["fly", 90, 64], ["fly", 30, 0]],
+		"naive": [["fly", 110, 400]],
+	},
+	"room_100": {
+		# Turn on the gate, fly up out of the hole in the roof to come in under the
+		# shelf, and hit the button on the far wall, which turns you and opens the gate.
+		"solve": [["fly", 56, 215], ["fly", 56, 192], ["fly", -60, "wrap"], ["fly", 150, 60], ["fly", 150, 400]],
+		"naive": [["fly", 56, 400]],
+	},
 }
 
 ## Seeds for rooms where Death picks his spot at random.
@@ -534,7 +626,7 @@ func _play(room_name: String, script: Array, deaths := 0) -> String:
 			var t := (Engine.get_physics_frames() - start_frame) / 120.0
 			var line := "      %5.2fs %s v%s" % [t, room.player.global_position.round(), room.player.velocity.round()]
 			for node in room.get_children():
-				if node is Saw or node is Bullet or node is Ghost or node is Reaper:
+				if node is Saw or node is Bullet or node is Ghost or node is Reaper or node is MovingWall:
 					line += "  %s%s" % [node.get_class() if node.get_script() == null else node.get_script().get_global_name(), node.global_position.round()]
 			print(line)
 	if OS.get_environment("LEVEL_TRACE") != "":
@@ -542,6 +634,8 @@ func _play(room_name: String, script: Array, deaths := 0) -> String:
 
 	var warps := [0]
 	room.player.teleported.connect(func() -> void: warps[0] += 1)
+	var laps := [0]
+	room.wrapped.connect(func(_count: int) -> void: laps[0] += 1)
 	var casts := [0]
 	for node in room.get_children():
 		if node is Reaper:
@@ -598,6 +692,33 @@ func _play(room_name: String, script: Array, deaths := 0) -> String:
 					if warps[0] > before or state.result != "":
 						break
 					await get_tree().physics_frame
+			"wrap":
+				if cmd.size() > 1:
+					_set_dir(cmd[1])
+					dir = cmd[1]
+				var before: int = laps[0]
+				for i in 600:
+					if laps[0] > before or state.result != "":
+						break
+					await get_tree().physics_frame
+			"fly":
+				var until_wrap: bool = cmd[2] is String
+				var was_left: bool = until_wrap or room.player.global_position.x < cmd[2]
+				var lap: int = laps[0]
+				var flapping := false
+				for i in 1800:
+					var p := room.player
+					if until_wrap and laps[0] > lap or not until_wrap and (p.global_position.x < cmd[2]) != was_left \
+							or state.result != "":
+						break
+					if flapping:
+						Input.action_release("jump")
+						flapping = false
+					elif (p.global_position.y - cmd[1]) * p.gravity_sign > 0.0 and p.velocity.y * p.gravity_sign > 0.0:
+						Input.action_press("jump")
+						flapping = true
+					await get_tree().physics_frame
+				Input.action_release("jump")
 			"until_cast":
 				var before: int = casts[0]
 				for i in 1200:

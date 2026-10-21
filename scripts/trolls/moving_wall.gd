@@ -22,6 +22,9 @@ enum Side { NONE, TOP, BOTTOM, LEFT, RIGHT }
 	set(value):
 		trigger = value
 		queue_redraw()
+## Waits for a button instead of moving at once. Each press moves it, and once it
+## has stopped at the far end the next press brings it back.
+@export var on_button := false
 ## Seconds between triggering and moving.
 @export var delay := 0.0
 ## Shuttle back and forth forever instead of moving once.
@@ -57,7 +60,7 @@ func _ready() -> void:
 		Zone.make(self, _spike_rect().grow(-1)).body_entered.connect(_on_spiked)
 	if trigger.has_area():
 		Zone.make(self, trigger).body_entered.connect(_begin.unbind(1), CONNECT_ONE_SHOT)
-	else:
+	elif not on_button:
 		_begin()
 
 
@@ -87,6 +90,15 @@ func _physics_process(delta: float) -> void:
 			return
 		_dir = -_dir
 		_wait = pause if _t == 1.0 or home_pause < 0.0 else home_pause
+
+
+## Called by a button. Sets off a wall that is waiting for one, or sends it back
+## once it has arrived. A wall that is already moving ignores it.
+func press() -> void:
+	if _moving:
+		return
+	_dir = -1.0 if _t >= 1.0 and not loop else 1.0
+	_begin()
 
 
 func _begin() -> void:

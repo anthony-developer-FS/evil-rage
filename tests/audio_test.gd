@@ -27,6 +27,8 @@ const PORTAL := preload("res://scenes/trolls/portal.tscn")
 const COIN := preload("res://scenes/trolls/coin.tscn")
 const REAPER := preload("res://scenes/trolls/reaper.tscn")
 const GHOST := preload("res://scenes/trolls/ghost.tscn")
+const PUSH_BUTTON := preload("res://scenes/trolls/push_button.tscn")
+const FLIP_PLATFORM := preload("res://scenes/trolls/flip_platform.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -66,6 +68,9 @@ func _ready() -> void:
 	await _run("Death tolls as he rises, then the saw whines", _test_reaper_saw)
 	await _run("Death's bullet fires with a thump", _test_reaper_bullet)
 	await _run("ghost moans when it gives chase", _test_ghost)
+	await _run("button clicks when pressed", _test_button)
+	await _run("flip platform clanks as it turns over", _test_flip_platform)
+	await _run("each flap plays", _test_flap)
 	await _run("volume changes apply to the bus", _test_volume)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
@@ -401,3 +406,29 @@ func _test_ghost() -> bool:
 	_world.add_child(ghost)
 	await _frames(10)
 	return _heard == [&"ghost"]
+
+
+func _test_button() -> bool:
+	var button: PushButton = PUSH_BUTTON.instantiate()
+	button.position = Vector2(80, 160)
+	_world.add_child(button)
+	Input.action_press("move_right")
+	await _frames(60)
+	return _heard == [&"button"]
+
+
+func _test_flip_platform() -> bool:
+	var slab: FlipPlatform = _place(FLIP_PLATFORM, Vector2(200, 100), Vector2(32, 8))
+	slab.press()
+	await _frames(40)
+	return _heard == [&"flip"]
+
+
+func _test_flap() -> bool:
+	_player.flappy_dir = 1.0
+	for i in 2:
+		Input.action_press("jump")
+		await _frames(1)
+		Input.action_release("jump")
+		await _frames(20)
+	return _heard.count(&"flap") == 2 and not &"jump" in _heard

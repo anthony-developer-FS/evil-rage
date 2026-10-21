@@ -1,0 +1,141 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/aviary.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/push_button.tscn" id="button"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/switch_block.tscn" id="switch"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+
+[node name="Room100" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+flappy_dir = 1
+wrap_around = true
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "100. Last flight"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="CeilingL" parent="." instance=ExtResource("block")]
+position = Vector2(0, -64)
+size = Vector2(104, 72)
+
+[node name="CeilingSpikesL" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 8)
+size = Vector2(104, 8)
+pointing = Vector2(0, 1)
+
+[node name="CeilingR" parent="." instance=ExtResource("block")]
+position = Vector2(184, -64)
+size = Vector2(136, 72)
+
+[node name="CeilingSpikesR" parent="." instance=ExtResource("hazard")]
+position = Vector2(184, 8)
+size = Vector2(136, 8)
+pointing = Vector2(0, 1)
+
+[node name="FloorL" parent="." instance=ExtResource("block")]
+position = Vector2(0, 168)
+size = Vector2(104, 12)
+
+[node name="FloorSpikesL" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 160)
+size = Vector2(104, 8)
+
+[node name="FloorR" parent="." instance=ExtResource("block")]
+position = Vector2(184, 168)
+size = Vector2(136, 12)
+
+[node name="FloorSpikesR" parent="." instance=ExtResource("hazard")]
+position = Vector2(184, 160)
+size = Vector2(104, 8)
+
+[node name="Perch" parent="." instance=ExtResource("block")]
+position = Vector2(0, 64)
+size = Vector2(24, 8)
+
+[node name="WallSpikesL" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 16)
+size = Vector2(8, 40)
+pointing = Vector2(1, 0)
+
+[node name="Shelf" parent="." instance=ExtResource("block")]
+position = Vector2(24, 88)
+size = Vector2(208, 8)
+
+[node name="ShelfTop" parent="." instance=ExtResource("hazard")]
+position = Vector2(24, 80)
+size = Vector2(208, 8)
+
+[node name="ShelfBottom" parent="." instance=ExtResource("hazard")]
+position = Vector2(24, 96)
+size = Vector2(208, 8)
+pointing = Vector2(0, 1)
+
+[node name="WallSpikesLowL" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 104)
+size = Vector2(8, 8)
+pointing = Vector2(1, 0)
+
+[node name="Open" parent="." instance=ExtResource("button")]
+position = Vector2(0, 140)
+rotation = 1.570796
+targets = Array[NodePath]([NodePath("../Gate")])
+one_shot = false
+turn = true
+
+[node name="Gate" parent="." instance=ExtResource("switch")]
+position = Vector2(232, 16)
+size = Vector2(16, 144)
+rim = Color(0.878, 0.282, 0.282, 1)
+
+[node name="GateSpikesHigh" parent="." instance=ExtResource("hazard")]
+position = Vector2(224, 16)
+size = Vector2(8, 20)
+pointing = Vector2(-1, 0)
+
+[node name="Turn" parent="." instance=ExtResource("button")]
+position = Vector2(232, 48)
+rotation = -1.570796
+one_shot = false
+turn = true
+color = Color(0.29, 0.541, 0.878, 1)
+
+[node name="GateSpikesLow" parent="." instance=ExtResource("hazard")]
+position = Vector2(224, 60)
+size = Vector2(8, 20)
+pointing = Vector2(-1, 0)
+
+[node name="GoalPerch" parent="." instance=ExtResource("block")]
+position = Vector2(288, 152)
+size = Vector2(32, 16)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(12, 64)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(304, 152)
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(12, 64)

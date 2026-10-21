@@ -1,0 +1,94 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/well.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/push_button.tscn" id="button"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/switch_block.tscn" id="switch"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+
+[node name="Room93" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+wrap_around = true
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "93. Ring the bell"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Ledge" parent="." instance=ExtResource("block")]
+position = Vector2(0, 40)
+size = Vector2(88, 8)
+
+[node name="ShelfL" parent="." instance=ExtResource("block")]
+position = Vector2(92, 128)
+size = Vector2(24, 8)
+
+[node name="ShelfLSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(92, 120)
+size = Vector2(24, 8)
+
+[node name="Pedestal" parent="." instance=ExtResource("block")]
+position = Vector2(116, 128)
+size = Vector2(24, 8)
+
+[node name="ShelfR" parent="." instance=ExtResource("block")]
+position = Vector2(140, 128)
+size = Vector2(24, 8)
+
+[node name="ShelfRSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(140, 120)
+size = Vector2(24, 8)
+
+[node name="Bell" parent="." instance=ExtResource("button")]
+position = Vector2(128, 128)
+targets = Array[NodePath]([NodePath("../Hatch")])
+
+[node name="Hatch" parent="." instance=ExtResource("switch")]
+position = Vector2(192, 160)
+size = Vector2(128, 20)
+solid = false
+rim = Color(0.878, 0.282, 0.282, 1)
+
+[node name="Roof" parent="." instance=ExtResource("block")]
+position = Vector2(256, 120)
+size = Vector2(64, 8)
+
+[node name="RoofSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(256, 112)
+size = Vector2(64, 8)
+
+[node name="WallSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(312, 8)
+size = Vector2(8, 104)
+pointing = Vector2(-1, 0)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(16, 40)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(300, 160)
+next_room = "res://scenes/rooms/room_94.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(16, 40)

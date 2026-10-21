@@ -394,6 +394,34 @@ def sfx_ghost():
     return tone * env(d, 0.12, 1.0) * 0.5
 
 
+def sfx_button():
+    # A chunky arcade button going down: a click, then a low clunk.
+    gen = np.random.default_rng(3201)
+    click = lowpass(noise(0.012, gen=gen), 6000) * env(0.012, 0.0005, 2.0)
+    clunk = square(sweep(320, 180, 0.07), 0.07, 0.25) * env(0.07, 0.001, 2.5) * 0.5
+    return lowpass(cat(click, clunk), 4000) * 0.6
+
+
+def sfx_flap():
+    # One beat of a wing: a soft puff of air with a little lift at the end.
+    gen = np.random.default_rng(3301)
+    d = 0.11
+    t = t_axis(d)
+    air = lowpass(noise(d, hold=2, gen=gen), 1800) * np.sin(np.pi * t / d) ** 2
+    lift = sine(sweep(220, 330, d), d) * env(d, 0.01, 2.0) * 0.25
+    return mix(air * 0.7, lift)
+
+
+def sfx_flip():
+    # A slab turning over on a hinge: a quick whir, then a clank.
+    gen = np.random.default_rng(3401)
+    d = 0.16
+    whir = lowpass(square(sweep(140, 420, d, 0.7), d, 0.3), 2000) * env(d, 0.02, 1.0) * 0.3
+    clank = mix(triangle(660, 0.12), triangle(990, 0.12) * 0.5) * env(0.12, 0.001, 3.0) * 0.4
+    tick = lowpass(noise(0.02, gen=gen), 5000) * env(0.02, 0.001, 2.0) * 0.4
+    return cat(whir, mix(clank, tick))
+
+
 def sfx_taunt():
     # Two-note "nyah nyah" played when a taunt appears. Quiet, it sits under the death.
     parts = []

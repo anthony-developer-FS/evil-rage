@@ -26,3 +26,9 @@ extends Resource
 @export var wall_jump_velocity := Vector2(130.0, 240.0)
 ## Time after a wall jump during which the stick can't steer back into the wall.
 @export var wall_jump_lock := 0.14
+
+@export_group("Flappy")
+## Upward speed of one flap in a flappy room.
+@export var flap_velocity := 170.0
+## Forward speed in a flappy room. The player cannot speed up, slow down or stop.
+@export var flap_speed := 70.0
