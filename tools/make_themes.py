@@ -360,6 +360,167 @@ def castle_backdrop():
     return img
 
 
+def mine_backdrop():
+    rng = np.random.default_rng(51)
+    img = canvas(W, H, "#17120e")
+    vgrad(img, 0, H, ["#120e0b", "#1c1611", "#211a13", "#15100c"])
+    rock = noise2d(W, H, 52, 10)
+    paint(img, rock > 0.6, "#221b15")
+    paint(img, rock > 0.7, "#2a2119")
+    # Ore veins glinting in the rock.
+    vein = noise2d(W, H, 53, 4)
+    paint(img, (vein > 0.84) & (rock > 0.6), "#3a2e1c")
+    paint(img, (vein > 0.9) & (rock > 0.66), "#6a5226")
+    # A far tunnel mouth with lantern light down it.
+    blend(img, radial(160, 96, 60, squash=0.75) * 0.7, "#2a1e14", levels=4)
+    paint(img, radial(160, 100, 30, squash=0.8) > 0, "#0b0806")
+    blend(img, radial(160, 104, 10) * 0.8, "#4a3218", levels=3)
+    # Timber supports: two posts and a beam per frame, with a lantern hung on each.
+    for fx in (20, 128, 236):
+        rect(img, fx, 30, 6, H - 30, "#4a3420")
+        rect(img, fx + 58, 30, 6, H - 30, "#4a3420")
+        rect(img, fx + 1, 30, 1, H - 30, "#5e4428")
+        rect(img, fx + 59, 30, 1, H - 30, "#5e4428")
+        rect(img, fx - 4, 24, 72, 7, "#553c24")
+        rect(img, fx - 4, 24, 72, 1, "#6e5030")
+        rect(img, fx - 4, 30, 72, 1, "#2a1c10")
+        for bx in range(fx, fx + 64, 16):
+            rect(img, bx + int(rng.integers(0, 10)), 26, 1, 3, "#3a2816")
+        lx = fx + 32
+        blend(img, radial(lx, 42, 34, squash=0.9) ** 1.5 * 0.55, "#4a3016")
+        rect(img, lx, 31, 1, 6, "#2a2018")
+        rect(img, lx - 2, 37, 5, 6, "#3a3028")
+        rect(img, lx - 1, 38, 3, 4, "#f0b040")
+        rect(img, lx, 39, 1, 2, "#fff0a0")
+    # Rails along the floor.
+    rect(img, 0, H - 22, W, 2, "#3a3a40")
+    rect(img, 0, H - 22, W, 1, "#6a6a72")
+    for x in range(0, W, 12):
+        rect(img, x, H - 20, 8, 3, "#3a2816")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 130) / 50, 0, 1) * 0.6, "#0e0a08", levels=4)
+    blend(img, np.clip((20 - ys) / 20, 0, 1) * 0.7, "#0e0a08", levels=4)
+    return img
+
+
+def sky_backdrop():
+    rng = np.random.default_rng(61)
+    img = canvas(W, H, "#1e2a4e")
+    vgrad(img, 0, H, ["#18203e", "#222e56", "#34436e", "#4c5680", "#6a6486"])
+    # Low sun haze at dusk.
+    blend(img, radial(250, 150, 120, squash=0.6) * 0.45, "#8a6a7a", levels=5)
+    # Far clouds in bands, lit from below.
+    for i, (y, col, lit) in enumerate([(120, "#4a5478", "#7a7a96"), (140, "#5a6084", "#8a8098")]):
+        tops = y + noise1d(W, 62 + i, 22) * 18
+        paint(img, column_mask(tops, False), col)
+        edge = column_mask(tops + 2, False) ^ column_mask(tops, False)
+        paint(img, edge, lit)
+    # Floating ruins: islands with broken columns.
+    for cx, cy, w in ((60, 70, 44), (196, 46, 30), (282, 96, 36)):
+        under = np.zeros((H, W), dtype=bool)
+        for x in range(cx - w // 2, cx + w // 2):
+            if 0 <= x < W:
+                t = (x - cx) / (w / 2)
+                depth = int((1 - t * t) * w * 0.55 + rng.integers(0, 3))
+                under[cy:cy + depth, x] = True
+        paint(img, under, "#2e3658")
+        rect(img, cx - w // 2, cy, w, 2, "#3e5a4a")
+        rect(img, cx - w // 2, cy, w, 1, "#4e7058")
+        for k, px in enumerate(range(cx - w // 2 + 4, cx + w // 2 - 4, 10)):
+            ph = int(rng.integers(8, 22))
+            rect(img, px, cy - ph, 5, ph, "#4e5878")
+            rect(img, px + 4, cy - ph, 1, ph, "#3a4262")
+            if k % 2 == 0:
+                rect(img, px - 1, cy - ph - 2, 7, 2, "#5a6484")
+    # Birds.
+    for _ in range(5):
+        bx, by = int(rng.integers(20, W - 20)), int(rng.integers(14, 60))
+        img[by, bx - 2] = img[by, bx + 2] = hexc("#10162c")
+        img[by - 1, bx - 1] = img[by - 1, bx + 1] = hexc("#10162c")
+    # Keep the playfield calm: soften toward a uniform tone.
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 150) / 30, 0, 1) * 0.5, "#4a4a66", levels=3)
+    return img
+
+
+def mirror_backdrop():
+    rng = np.random.default_rng(71)
+    img = canvas(W, H, "#101826")
+    vgrad(img, 0, H, ["#0c1220", "#121c30", "#16233a", "#0f1828"])
+    # Tall framed mirrors, each showing a faint, wrong reflection of the hall.
+    for i, mx in enumerate((22, 98, 174, 250)):
+        mw, top, bottom = 48, 24, 138
+        rect(img, mx - 3, top - 3, mw + 6, bottom - top + 6, "#5a4a2a")
+        rect(img, mx - 3, top - 3, mw + 6, 1, "#b0904a")
+        rect(img, mx - 2, top - 2, mw + 4, bottom - top + 4, "#3a2e1a")
+        glass = np.zeros((bottom - top, mw, 3), dtype=np.uint8)
+        vgrad(glass, 0, bottom - top, ["#1c3048", "#24405a", "#1a2c44"])
+        img[top:bottom, mx:mx + mw] = glass
+        # Diagonal glints.
+        ys, xs = np.mgrid[0:bottom - top, 0:mw]
+        for g in (10, 26):
+            band = (np.abs(xs + ys * 0.6 - g - i * 7) < 2)
+            sub = img[top:bottom, mx:mx + mw]
+            sub[band] = hexc("#3e6080")
+        # A silhouette that should be the player's, facing the wrong way.
+        sx = mx + (12 if i % 2 else mw - 18)
+        rect(img, sx, bottom - 22, 6, 16, "#142236")
+        rect(img, sx + 1, bottom - 28, 4, 5, "#142236")
+        rect(img, mx - 4, bottom + 3, mw + 8, 3, "#6a5630")
+    # Crystal growth along the floor and ceiling.
+    for _ in range(18):
+        x, w = int(rng.integers(-4, W)), int(rng.integers(5, 11))
+        h = int(rng.integers(8, 26))
+        triangle(img, x, H - h, w, h, "#2a4a6a", down=False)
+        triangle(img, x + 1, H - h + 3, w - 3, h - 3, "#3a6a8a", down=False)
+    for _ in range(14):
+        x, w = int(rng.integers(-4, W)), int(rng.integers(5, 10))
+        triangle(img, x, 0, w, int(rng.integers(8, 20)), "#1e3450")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 140) / 40, 0, 1) * 0.5, "#0a101c", levels=4)
+    return img
+
+
+def spire_backdrop():
+    rng = np.random.default_rng(81)
+    img = canvas(W, H, "#120c22")
+    vgrad(img, 0, H, ["#1e1036", "#150c28", "#0e0a1c", "#150c28", "#1e1036"])
+    # Stars, some of them falling the wrong way.
+    for _ in range(70):
+        x, y = int(rng.integers(0, W)), int(rng.integers(0, H))
+        img[y, x] = hexc("#8a7ab8" if rng.random() < 0.7 else "#e0d8ff")
+    for _ in range(4):
+        x, y = int(rng.integers(10, W - 10)), int(rng.integers(30, H - 30))
+        for k in range(6):
+            img[y - k, x] = hexc("#5a4a8a")
+        img[y, x] = hexc("#e0d8ff")
+    # A tower hanging from the top and its mirror image rising from below.
+    for flip in (False, True):
+        tw, base = 54, 60
+        cx = 160
+        for y in range(base):
+            row = y if not flip else H - 1 - y
+            half = tw // 2 - int(y * 0.12)
+            rect(img, cx - half, row, half * 2, 1, "#24183e")
+            rect(img, cx - half, row, 2, 1, "#2e2050")
+        for wy in range(10, base - 14, 16):
+            row = wy if not flip else H - 1 - wy - 6
+            rect(img, cx - 3, row, 6, 6, "#e0a0ff" if (wy // 16) % 2 == 0 else "#3a2860")
+        if flip:
+            triangle(img, cx - 12, H - base - 18, 24, 18, "#24183e", down=False)
+        else:
+            triangle(img, cx - 12, base, 24, 18, "#24183e")
+    # Floating chunks of rock drifting both ways.
+    for _ in range(9):
+        x, y = int(rng.integers(0, W - 20)), int(rng.integers(40, H - 40))
+        w = int(rng.integers(8, 20))
+        rect(img, x, y, w, 4, "#2a1e48")
+        rect(img, x, y, w, 1, "#4a3a78")
+        triangle(img, x + 1, y + 4, w - 2, int(rng.integers(3, 8)), "#20163a")
+    blend(img, radial(160, 90, 60, squash=0.5) * 0.25, "#2a1846", levels=3)
+    return img
+
+
 # --- tiles ------------------------------------------------------------------
 # Each painter draws one 8x8 tile from a variant index. Top tiles sit on the top
 # row of every block; fill tiles cover the rest.
@@ -443,11 +604,77 @@ def castle_tile(top, v):
     return brick_tile(top, v, "#767c94", "#474b60", "#8e94ac", "#666c84", "#5a7a52", "#b4b9cc")
 
 
+def mine_tile(top, v):
+    rng = np.random.default_rng(500 + v + top * 10)
+    t = canvas(T, T, "#5a4a3a")
+    speckle(t, rng, "#4a3c2e", 8)
+    speckle(t, rng, "#6c5a46", 3)
+    if top:
+        # A timber plank laid over the rock.
+        t[0:3, :] = hexc("#8a6038")
+        t[0, :] = hexc("#b08050")
+        t[2, :] = hexc("#5a3a20")
+        t[1, (v * 3 + 2) % T] = hexc("#5a3a20")
+    elif v == 1:
+        t[4, 2:4] = hexc("#8a7038")
+        t[3, 2] = hexc("#b09048")
+    elif v == 2:
+        t[5:7, 4:7] = hexc("#3c3024")
+    return t
+
+
+def sky_tile(top, v):
+    rng = np.random.default_rng(600 + v + top * 10)
+    t = brick_tile(top, v, "#c8c4b8", "#8e8a80", "#e0dcd0", "#a8a498", None, "#f0ece0")
+    if top:
+        t[0, :] = hexc("#7ac060")
+        t[1, :] = hexc("#5a9a48")
+        for x in range(T):
+            if rng.random() < 0.4:
+                t[2, x] = hexc("#5a9a48")
+    return t
+
+
+def mirror_tile(top, v):
+    rng = np.random.default_rng(700 + v + top * 10)
+    t = canvas(T, T, "#3a6a9a")
+    speckle(t, rng, "#2e5a88", 6)
+    for i in range(T):
+        t[i, (i + v * 2) % T] = hexc("#5a8aba")
+    if top:
+        t[0, :] = hexc("#c8f0ff")
+        t[1, :] = hexc("#8ac8f0")
+    elif v == 1:
+        t[2:6, 3] = hexc("#a0e0ff")
+        t[3:5, 2:5] = hexc("#a0e0ff")
+    return t
+
+
+def spire_tile(top, v):
+    rng = np.random.default_rng(800 + v + top * 10)
+    t = canvas(T, T, "#3a2a5a")
+    speckle(t, rng, "#2e2048", 7)
+    speckle(t, rng, "#4a3870", 3)
+    # Lit on both faces: in these rooms the underside is often the floor.
+    if top:
+        t[0, :] = hexc("#8a6ac8")
+        t[1, :] = hexc("#5a4490")
+    if v == 1:
+        t[3:5, 3:5] = hexc("#c890ff")
+    elif v == 3:
+        t[6, 1:6] = hexc("#251a3c")
+    return t
+
+
 THEMES = {
     "jungle": (jungle_backdrop, jungle_tile),
     "cave": (cave_backdrop, cave_tile),
     "temple": (temple_backdrop, temple_tile),
     "castle": (castle_backdrop, castle_tile),
+    "mine": (mine_backdrop, mine_tile),
+    "sky": (sky_backdrop, sky_tile),
+    "mirror": (mirror_backdrop, mirror_tile),
+    "spire": (spire_backdrop, spire_tile),
 }
 
 

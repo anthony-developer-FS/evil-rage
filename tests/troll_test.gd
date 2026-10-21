@@ -11,9 +11,15 @@ const RUNAWAY_GOAL := preload("res://scenes/trolls/runaway_goal.tscn")
 const INVISIBLE_BLOCK := preload("res://scenes/trolls/invisible_block.tscn")
 const FALLING_CEILING := preload("res://scenes/trolls/falling_ceiling.tscn")
 const DECOY_GOAL := preload("res://scenes/trolls/decoy_goal.tscn")
+const HAZARD := preload("res://scenes/objects/hazard.tscn")
 const SPRING := preload("res://scenes/objects/spring.tscn")
 const DART_TRAP := preload("res://scenes/trolls/dart_trap.tscn")
 const FAKE_WALL := preload("res://scenes/trolls/fake_wall.tscn")
+const MOVING_WALL := preload("res://scenes/trolls/moving_wall.tscn")
+const GRAVITY_FIELD := preload("res://scenes/trolls/gravity_field.tscn")
+const MIRROR_ZONE := preload("res://scenes/trolls/mirror_zone.tscn")
+const SLOW_FALL := preload("res://scenes/trolls/slow_fall_zone.tscn")
+const RETRY_VARIANT := preload("res://scenes/trolls/retry_variant.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -33,6 +39,15 @@ func _ready() -> void:
 	await _run("dart trap fires when the player crosses it", _test_dart_hits)
 	await _run("dart breaks on a wall in its way", _test_dart_blocked)
 	await _run("fake wall lets the player walk through", _test_fake_wall)
+	await _run("moving wall carries a rider", _test_moving_wall_rides)
+	await _run("closing walls crush", _test_moving_wall_crushes)
+	await _run("spiked face of a moving wall kills", _test_moving_wall_spikes)
+	await _run("gravity field drops the player onto the ceiling", _test_gravity_field)
+	await _run("upside down, jump goes down", _test_gravity_jump)
+	await _run("mirror zone swaps left and right", _test_mirror_zone)
+	await _run("slow-fall zone caps the fall", _test_slow_fall)
+	await _run("downward spikes kill from below", _test_ceiling_spikes)
+	await _run("retry variant only exists on its attempts", _test_retry_variant)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
 
@@ -197,3 +212,123 @@ func _dart_trap(pos: Vector2, trigger: Rect2) -> DartTrap:
 	trap.trigger = trigger
 	_world.add_child(trap)
 	return trap
+
+
+func _test_moving_wall_rides() -> bool:
+	var lift: MovingWall = MOVING_WALL.instantiate()
+	lift.position = Vector2(30, 140)
+	lift.size = Vector2(24, 8)
+	lift.travel = Vector2(0, -60)
+	lift.duration = 1.0
+	# Put the player on the lift before it exists, so it never spawns around them.
+	_player.position = Vector2(40, 139)
+	await _frames(1)
+	_world.add_child(lift)
+	await _frames(180)
+	return not _player.is_dead and absf(_player.global_position.y - 80.0) < 2.0
+
+
+func _test_moving_wall_crushes() -> bool:
+	_place(BLOCK, Vector2(0, 100), Vector2(16, 60))
+	var wall: MovingWall = MOVING_WALL.instantiate()
+	wall.position = Vector2(100, 100)
+	wall.size = Vector2(16, 60)
+	wall.travel = Vector2(-84, 0)
+	wall.duration = 0.6
+	wall.trigger = Rect2(-90, 0, 40, 60)
+	_world.add_child(wall)
+	_player.position = Vector2(24, 159)
+	await _frames(120)
+	return _player.is_dead
+
+
+func _test_moving_wall_spikes() -> bool:
+	var wall: MovingWall = MOVING_WALL.instantiate()
+	wall.position = Vector2(200, 120)
+	wall.size = Vector2(16, 40)
+	wall.spikes = MovingWall.Side.LEFT
+	wall.travel = Vector2.ZERO
+	_world.add_child(wall)
+	Input.action_press("move_right")
+	await _frames(240)
+	return _player.is_dead
+
+
+func _test_gravity_field() -> bool:
+	_place(BLOCK, Vector2(0, 40), Vector2(320, 8))
+	var field: GravityField = GRAVITY_FIELD.instantiate()
+	field.position = Vector2(80, 48)
+	field.size = Vector2(16, 112)
+	_world.add_child(field)
+	Input.action_press("move_right")
+	await _frames(60)
+	Input.action_release("move_right")
+	await _frames(120)
+	return _player.gravity_sign < 0.0 and _player.is_on_floor() and absf(_player.global_position.y - 62.0) < 2.0
+
+
+func _test_gravity_jump() -> bool:
+	_place(BLOCK, Vector2(0, 40), Vector2(320, 8))
+	_player.position = Vector2(40, 62)
+	_player.set_gravity_inverted(true)
+	await _frames(30)
+	var rest := _player.global_position.y
+	Input.action_press("jump")
+	var lowest := rest
+	for i in 90:
+		await _frames(1)
+		lowest = maxf(lowest, _player.global_position.y)
+	print("      upside-down jump: %.1f px" % (lowest - rest))
+	return lowest - rest > 30.0 and absf(_player.global_position.y - rest) < 1.0
+
+
+func _test_mirror_zone() -> bool:
+	var zone: MirrorZone = MIRROR_ZONE.instantiate()
+	zone.position = Vector2(60, 120)
+	zone.size = Vector2(8, 40)
+	_world.add_child(zone)
+	Input.action_press("move_right")
+	await _frames(60)
+	var turned: bool = _player.controls_reversed
+	var x := _player.global_position.x
+	await _frames(60)
+	# Holding right now walks left, back out the way they came.
+	return turned and _player.global_position.x < x - 20.0
+
+
+func _test_slow_fall() -> bool:
+	var zone: SlowFallZone = SLOW_FALL.instantiate()
+	zone.position = Vector2(20, 0)
+	zone.size = Vector2(40, 160)
+	_world.add_child(zone)
+	_player.position = Vector2(40, 20)
+	var fastest := 0.0
+	for i in 60:
+		await _frames(1)
+		fastest = maxf(fastest, _player.velocity.y)
+	return fastest <= zone.fall_speed + 0.01 and _player.global_position.y < 60.0
+
+
+func _test_ceiling_spikes() -> bool:
+	var spikes: Hazard = HAZARD.instantiate()
+	spikes.position = Vector2(30, 128)
+	spikes.size = Vector2(24, 8)
+	spikes.pointing = Vector2.DOWN
+	_world.add_child(spikes)
+	Input.action_press("jump")
+	await _frames(40)
+	return _player.is_dead
+
+
+func _test_retry_variant() -> bool:
+	var saved := Game.room_deaths
+	var first: RetryVariant = RETRY_VARIANT.instantiate()
+	first.max_deaths = 0
+	var later: RetryVariant = RETRY_VARIANT.instantiate()
+	later.min_deaths = 1
+	Game.room_deaths = 2
+	_world.add_child(first)
+	_world.add_child(later)
+	await _frames(2)
+	Game.room_deaths = saved
+	return not is_instance_valid(first) and is_instance_valid(later)

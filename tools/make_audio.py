@@ -228,6 +228,35 @@ def sfx_secret():
     return cat(*parts) * 0.5
 
 
+def sfx_grind():
+    # Stone dragging on stone as a wall starts to slide: low rumble with a scrape.
+    gen = np.random.default_rng(2101)
+    d = 0.45
+    t = t_axis(d)
+    rumble = lowpass(noise(d, hold=16, gen=gen), 250) * env(d, 0.04, 0.9)
+    scrape = lowpass(noise(d, hold=3, gen=gen), 1200) * env(d, 0.02, 1.2) * (0.5 + 0.5 * np.sin(2 * np.pi * 11 * t))
+    hum = lowpass(square(sweep(55, 48, d), d, 0.4), 300) * env(d, 0.03, 1.0) * 0.4
+    return mix(rumble, scrape * 0.5, hum)
+
+
+def sfx_gravity():
+    # The world turning over: a wide sweep up with a wobble, like the floor letting go.
+    d = 0.4
+    t = t_axis(d)
+    f = sweep(160, 900, d, 0.7) * (1 + 0.05 * np.sin(2 * np.pi * 14 * t))
+    tone = mix(sine(f, d), triangle(f * 1.5, d) * 0.3)
+    return lowpass(tone, 4000) * env(d, 0.01, 1.4) * 0.6
+
+
+def sfx_mirror():
+    # Glassy shimmer that plays backwards: the swell comes last.
+    d = 0.35
+    t = t_axis(d)
+    shimmer = sum(np.sin(2 * np.pi * f * t) * a for f, a in [(1046.5, 1), (1567.98, 0.6), (2093.0, 0.4), (2637.0, 0.3)])
+    shimmer *= (0.6 + 0.4 * np.sin(2 * np.pi * 18 * t))
+    return shimmer * env(d, 0.002, 1.5)[::-1] * 0.35
+
+
 def sfx_taunt():
     # Two-note "nyah nyah" played when a taunt appears. Quiet, it sits under the death.
     parts = []

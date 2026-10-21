@@ -6,7 +6,7 @@ A punishing 2D precision platformer where the levels lie to you. Built with Godo
 
 1. Install [Godot 4.5](https://godotengine.org/download) (standard build, no .NET needed).
 2. Open Godot, choose **Import**, and select this folder's `project.godot`.
-3. Press F5. Room 1 loads. Beat all twenty rooms across four worlds.
+3. Press F5. Room 1 loads. Beat all forty rooms across eight worlds.
 
 Controls: A/D or arrows to move, Space/K/Up to jump, R to restart, F11 or Alt+Enter to toggle fullscreen, `-` and `=` for volume, M to toggle music. Gamepad works too (stick or d-pad, A to jump).
 
@@ -35,6 +35,10 @@ The world is drawn into a 320x180 viewport and scaled up by whole numbers, so pi
 | `scenes/rooms/room_07.tscn` to `room_12.tscn` | The Caves: decoy exits, springs, a wall-jump shaft and a crumbling bridge, then a finale that mixes them |
 | `scenes/rooms/room_13.tscn` to `room_16.tscn` | The Temple: dart traps |
 | `scenes/rooms/room_17.tscn` to `room_20.tscn` | The Castle: secret passages, a portcullis, murder holes and the final keep |
+| `scenes/rooms/room_21.tscn` to `room_25.tscn` | The Mines: lifts, presses, a bridge that slides away and a wall that chases you |
+| `scenes/rooms/room_26.tscn` to `room_30.tscn` | The Sky Ruins: updrafts that make you float, crumbling stepping stones and a ferry |
+| `scenes/rooms/room_31.tscn` to `room_35.tscn` | The Mirror Halls: mirrors that swap left and right, and rooms that change after you die |
+| `scenes/rooms/room_36.tscn` to `room_40.tscn` | The Upside-Down Spire: gravity flips, ceiling walks, and a finale that uses everything |
 | `scripts/world_theme.gd`, `resources/themes/` | One theme resource per world: backdrop, tiles, spike and title colors, ambient motes |
 | `scripts/backdrop.gd` | Draws the room's backdrop and its fireflies, drips, dust or embers |
 | `tools/make_themes.py` | Paints every world's backdrop and tile sheet into `art/themes/`. Edit and rerun it to change the art |
@@ -56,8 +60,19 @@ Drop a trap scene into a room and set its `size` in the inspector. In the editor
 | Decoy goal | Looks exactly like the exit, kills on touch | none |
 | Dart trap | A carved face in a wall. Fires darts along `direction` when the trigger is entered; darts break on blocks | `trigger`, `direction`, `count`, `interval`, `delay`, `speed` |
 | Fake wall | Looks like a block but is not solid: a secret passage. Fades a little while the player is inside | none |
+| Moving wall | A block that slides by `travel`. With a `trigger` it moves once (walls closing in, floors pulling away); with `loop` it shuttles forever (lifts, presses). Riders are carried; anyone caught inside it is crushed | `travel`, `duration`, `trigger`, `delay`, `loop`, `pause`, `home_pause`, `spikes` |
+| Gravity field | Walking in turns gravity upside down (or back, with `inverted` off). It stays that way after leaving. `concealed` hides it | `inverted`, `concealed` |
+| Mirror zone | Walking in swaps left and right (or back, with `reversed` off). It stays that way after leaving. `concealed` hides it | `reversed`, `concealed` |
+| Slow-fall zone | An updraft. Inside it gravity is weak and falls are capped at a drift, so jumps float high and drops become glides. Only works while inside | `gravity_scale`, `fall_speed` |
+| Retry variant | Not a trap itself: its children only exist on some attempts. Put the first-try layout under one with `max_deaths = 0` and the changed layout under one with `min_deaths = 1` | `min_deaths`, `max_deaths` |
 
 A spring (`scenes/objects/spring.tscn`) is not a trap but rooms use it as one. Place it on the floor: walking onto it gives a short hop, and landing on it with jump held launches the player about `power² / 1800` pixels. Rooms 8 and 10 lean on that difference.
+
+Spikes point up by default. Set a hazard's `pointing` to `(0, 1)` to hang them from a ceiling, which the upside-down rooms need. A goal can be hung on a ceiling by giving it a `scale` of `(1, -1)`.
+
+Gravity and mirrors are state on the player (`gravity_sign`, `controls_reversed`), so every jump, wall slide and spring just works upside down or mirrored. With gravity flipped, falling off the top of the screen kills.
+
+A moving wall is an `AnimatableBody2D`, so the physics engine carries a player standing on it. It figures the wall's speed out a frame late, so keep walls under about 200 px/s or a rider sinks in far enough to count as crushed. Rooms 22, 24 and 39 are presses: a short `pause` at the bottom and a long `home_pause` at the top.
 
 The falling ceiling's `trigger_reach` widens its trigger past both sides, so it can drop just in front of the player. Room 18's portcullis uses it.
 
@@ -73,6 +88,10 @@ Each room's root has a `world_theme` (a `WorldTheme` resource in `resources/them
 | The Caves | 7 to 12 | Drips |
 | The Temple | 13 to 16 | Dust |
 | The Castle | 17 to 20 | Embers |
+| The Mines | 21 to 25 | Dust |
+| The Sky Ruins | 26 to 30 | Wind |
+| The Mirror Halls | 31 to 35 | Sparkles |
+| The Upside-Down Spire | 36 to 40 | Rising motes |
 
 Tiles are laid on a grid aligned to the room, so a fake floor next to a real block joins without a seam. To add a world, add a painter pair to `THEMES` in `tools/make_themes.py`, run it (needs numpy), and create a theme resource pointing at the new images. The images are a few KB each and are stored as plain git objects rather than LFS, like the audio.
 
@@ -90,4 +109,4 @@ There are three buses in `default_bus_layout.tres`: Master, Music and SFX. Volum
 GODOT=/path/to/godot ./run_tests.sh
 ```
 
-Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run, and `LEVEL_KIND=solve` (or `naive`) to play only one of the two runs.
+Four suites: `movement_test` checks the controller, `troll_test` checks each trap, `level_test` plays a scripted run through every room to prove it can be beaten, plus a naive run to prove the troll gets you, and `audio_test` checks that each gameplay event plays its sound. If you change a room, update its runs in `tests/level_test.gd`. To check only some rooms, pass their names: `godot --headless --path . res://tests/level_test.tscn -- room_09 room_10`. Set `LEVEL_TRACE=1` to print the player's path while you write a run, and `LEVEL_KIND=solve` (or `naive`) to play only one of the two runs. Rooms with retry variants (33 and 35) also have `retry_solve` and `retry_naive` runs, played as if the player had already died once there. For mirrored rooms, `["key", "left", x]` holds a key until the player crosses `x` from either side, since the left key may be walking them right.

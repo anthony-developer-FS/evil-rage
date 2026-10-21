@@ -1,0 +1,97 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/spire.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/moving_wall.tscn" id="mover"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/slow_fall_zone.tscn" id="updraft"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/mirror_zone.tscn" id="mirror"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/decoy_goal.tscn" id="decoy"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/gravity_field.tscn" id="gravity"]
+
+[node name="Room40" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "40. The way out"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="FloorA" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(64, 20)
+
+[node name="PitSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(64, 168)
+size = Vector2(256, 8)
+
+[node name="PitFloor" parent="." instance=ExtResource("block")]
+position = Vector2(64, 176)
+size = Vector2(256, 4)
+
+[node name="Lift" parent="." instance=ExtResource("mover")]
+position = Vector2(64, 160)
+size = Vector2(32, 8)
+travel = Vector2(0, -56)
+duration = 1.4
+loop = true
+pause = 0.8
+delay = 1.0
+
+[node name="Ledge" parent="." instance=ExtResource("block")]
+position = Vector2(96, 104)
+size = Vector2(48, 8)
+
+[node name="Draft" parent="." instance=ExtResource("updraft")]
+position = Vector2(144, 32)
+size = Vector2(96, 68)
+
+[node name="Glass" parent="." instance=ExtResource("mirror")]
+position = Vector2(200, 32)
+size = Vector2(6, 68)
+
+[node name="Landing" parent="." instance=ExtResource("block")]
+position = Vector2(240, 104)
+size = Vector2(80, 8)
+
+[node name="Ceiling" parent="." instance=ExtResource("block")]
+position = Vector2(240, -64)
+size = Vector2(80, 96)
+
+[node name="Door" parent="." instance=ExtResource("decoy")]
+position = Vector2(280, 104)
+
+[node name="Flip" parent="." instance=ExtResource("gravity")]
+position = Vector2(300, 32)
+size = Vector2(12, 72)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(256, 32)
+scale = Vector2(1, -1)
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

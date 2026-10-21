@@ -19,6 +19,10 @@ const TAUNTS := [
 	"Not every exit is an exit.",
 	"You held jump, didn't you?",
 	"Up is a direction. Not always the right one.",
+	"Which way is up again?",
+	"Left. No, your other left.",
+	"The walls were always closing in.",
+	"It changed. So should you.",
 ]
 
 var total_deaths := 0

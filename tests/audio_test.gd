@@ -16,6 +16,9 @@ const DECOY_GOAL := preload("res://scenes/trolls/decoy_goal.tscn")
 const SPRING := preload("res://scenes/objects/spring.tscn")
 const DART_TRAP := preload("res://scenes/trolls/dart_trap.tscn")
 const FAKE_WALL := preload("res://scenes/trolls/fake_wall.tscn")
+const MOVING_WALL := preload("res://scenes/trolls/moving_wall.tscn")
+const GRAVITY_FIELD := preload("res://scenes/trolls/gravity_field.tscn")
+const MIRROR_ZONE := preload("res://scenes/trolls/mirror_zone.tscn")
 
 var _failures := 0
 var _world: Node2D
@@ -40,6 +43,9 @@ func _ready() -> void:
 	await _run("spring plays on bounce", _test_spring)
 	await _run("dart trap plays when it fires", _test_dart_trap)
 	await _run("secret passage chimes once", _test_fake_wall)
+	await _run("moving wall grinds when triggered", _test_moving_wall)
+	await _run("gravity flip plays", _test_gravity_field)
+	await _run("mirror plays once per swap", _test_mirror_zone)
 	await _run("volume changes apply to the bus", _test_volume)
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
@@ -221,3 +227,37 @@ func _dart_trap(pos: Vector2, trigger: Rect2) -> DartTrap:
 	trap.trigger = trigger
 	_world.add_child(trap)
 	return trap
+
+
+func _test_moving_wall() -> bool:
+	var wall: MovingWall = MOVING_WALL.instantiate()
+	wall.position = Vector2(200, 100)
+	wall.size = Vector2(16, 16)
+	wall.travel = Vector2(0, -32)
+	wall.trigger = Rect2(-160, 0, 40, 60)
+	_world.add_child(wall)
+	await _frames(10)
+	return _heard.count(&"grind") == 1
+
+
+func _test_gravity_field() -> bool:
+	var field: GravityField = GRAVITY_FIELD.instantiate()
+	field.position = Vector2(30, 100)
+	field.size = Vector2(20, 60)
+	_world.add_child(field)
+	await _frames(10)
+	return &"gravity" in _heard
+
+
+func _test_mirror_zone() -> bool:
+	var zone: MirrorZone = MIRROR_ZONE.instantiate()
+	zone.position = Vector2(30, 100)
+	zone.size = Vector2(20, 60)
+	_world.add_child(zone)
+	await _frames(10)
+	# Already mirrored: walking back in again changes nothing and stays quiet.
+	_player.position = Vector2(80, 159)
+	await _frames(10)
+	_player.position = Vector2(40, 159)
+	await _frames(10)
+	return _heard.count(&"mirror") == 1

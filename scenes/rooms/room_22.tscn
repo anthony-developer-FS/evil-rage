@@ -1,0 +1,62 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/mine.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/moving_wall.tscn" id="mover"]
+
+[node name="Room22" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "22. Mind your head"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(320, 20)
+
+[node name="Ceiling" parent="." instance=ExtResource("block")]
+position = Vector2(0, -64)
+size = Vector2(320, 160)
+
+[node name="Crusher" parent="." instance=ExtResource("mover")]
+position = Vector2(136, 40)
+size = Vector2(48, 56)
+travel = Vector2(0, 58)
+duration = 0.35
+loop = true
+pause = 0.9
+spikes = 2
+trigger = Rect2(-8, 56, 56, 64)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(296, 160)
+next_room = "res://scenes/rooms/room_23.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)
