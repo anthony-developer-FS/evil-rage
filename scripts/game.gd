@@ -6,6 +6,8 @@ signal taunted(line: String)
 ## seconds > 0 hides the banner again after that long.
 signal banner_shown(text: String, seconds: float)
 signal title_shown(text: String, color: Color)
+## total counts banked coins plus the ones picked up on this attempt.
+signal coins_changed(total: int)
 
 const TAUNTS := [
 	"Skill issue.",
@@ -27,6 +29,10 @@ const TAUNTS := [
 
 var total_deaths := 0
 var room_deaths := 0
+## Coins kept from rooms already beaten. Coins picked up on this attempt only
+## count once the exit is reached; dying throws them away with the room.
+var coins := 0
+var attempt_coins := 0
 var last_taunt := ""
 var _room_path := ""
 var _world_theme: WorldTheme
@@ -52,8 +58,14 @@ func register_death() -> void:
 	taunted.emit(last_taunt)
 
 
+func collect_coin() -> void:
+	attempt_coins += 1
+	coins_changed.emit(coins + attempt_coins)
+
+
 ## Reloading the whole room on death resets every trap for free.
 func restart_room() -> void:
+	attempt_coins = 0
 	if world:
 		_load_room.call_deferred(_room_path)
 	else:
@@ -61,6 +73,8 @@ func restart_room() -> void:
 
 
 func go_to_room(path: String) -> void:
+	coins += attempt_coins
+	attempt_coins = 0
 	room_deaths = 0
 	last_taunt = ""
 	if world:

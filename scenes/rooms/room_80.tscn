@@ -1,0 +1,96 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/crypt.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/coin.tscn" id="coin"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/reaper.tscn" id="reaper"]
+
+[node name="Room80" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "80. The reaper's due"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Floor1" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(96, 20)
+
+[node name="Floor2" parent="." instance=ExtResource("block")]
+position = Vector2(112, 160)
+size = Vector2(64, 20)
+
+[node name="Floor3" parent="." instance=ExtResource("block")]
+position = Vector2(192, 160)
+size = Vector2(56, 20)
+
+[node name="Floor4" parent="." instance=ExtResource("block")]
+position = Vector2(264, 160)
+size = Vector2(56, 20)
+
+[node name="Grave1" parent="." instance=ExtResource("block")]
+position = Vector2(96, 176)
+size = Vector2(16, 4)
+
+[node name="Grave2" parent="." instance=ExtResource("block")]
+position = Vector2(176, 176)
+size = Vector2(16, 4)
+
+[node name="Grave3" parent="." instance=ExtResource("block")]
+position = Vector2(248, 176)
+size = Vector2(16, 4)
+
+[node name="Bomb" parent="." instance=ExtResource("coin")]
+position = Vector2(256, 168)
+kind = 1
+fuse = 0.25
+approach = 24.0
+
+[node name="Coin1" parent="." instance=ExtResource("coin")]
+position = Vector2(104, 136)
+
+[node name="Coin2" parent="." instance=ExtResource("coin")]
+position = Vector2(184, 136)
+
+[node name="Death" parent="." instance=ExtResource("reaper")]
+position = Vector2(12.5, 156.5)
+area = Rect2(12, 156, 1, 1)
+pattern = "cb"
+first_delay = 0.0
+interval = 1.0
+windup = 0.35
+too_close = 0.0
+saw_speed = 200.0
+bullet_speed = 180.0
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(48, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(304, 160)
+next_room = "res://scenes/rooms/room_81.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(48, 160)

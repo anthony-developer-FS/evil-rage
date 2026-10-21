@@ -663,6 +663,170 @@ def observatory_backdrop():
     return img
 
 
+def warp_backdrop():
+    rng = np.random.default_rng(131)
+    img = canvas(W, H, "#120a22")
+    vgrad(img, 0, H, ["#0c0618", "#160c2a", "#20123a", "#1a0e2e"])
+    # A rift in the sky, torn and glowing violet.
+    blend(img, radial(200, 60, 120, squash=0.6) * 0.45, "#3a1a5a", levels=4)
+    rift = radial(200, 60, 40, squash=0.35)
+    blend(img, rift * 1.2, "#6a3ab0", levels=3)
+    paint(img, rift > 0.55, "#b088f0")
+    paint(img, rift > 0.8, "#e8d8ff")
+    for _ in range(70):
+        x, y = int(rng.integers(0, W)), int(rng.integers(0, 120))
+        img[y, x] = hexc("#8a6ac8" if rng.random() < 0.5 else "#4a3478")
+    # A broken stone ring gate on a hill, and fallen pillars.
+    ys, xs = np.mgrid[0:H, 0:W]
+    d = np.sqrt((xs - 90) ** 2 + ((ys - 100) * 1.1) ** 2)
+    ring = (d < 34) & (d > 26) & ~((xs > 104) & (ys < 84))
+    paint(img, ring, "#3a3050")
+    paint(img, ring & (d > 32), "#4a4064")
+    blend(img, np.clip(1 - d / 26, 0, 1) * 0.6, "#4a2a7a", levels=3)
+    for x, h in ((20, 40), (156, 28), (282, 46), (300, 22)):
+        rect(img, x, 136 - h, 9, h, "#2e2644")
+        rect(img, x, 136 - h, 9, 2, "#443a60")
+        rect(img, x - 1, 136 - h - 3, 11, 3, "#3a3254")
+    hill = 132 + noise1d(W, 132, 50, 2) * 12
+    paint(img, column_mask(hill, False), "#1a1428")
+    edge = column_mask(hill + 1, False) ^ column_mask(hill, False)
+    paint(img, edge, "#3a2c58")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 140) / 40, 0, 1) * 0.5, "#0c0818", levels=4)
+    return img
+
+
+def labyrinth_backdrop():
+    rng = np.random.default_rng(141)
+    img = canvas(W, H, "#0a1a1c")
+    vgrad(img, 0, H, ["#081416", "#0c1e22", "#10282c", "#0c1e20"])
+    # Hedge-stone walls of a maze stepping away into teal fog, one layer per depth.
+    for depth, (col, lit, top, step) in enumerate([("#0e2628", "#163436", 40, 34), ("#102c2e", "#1a3c40", 64, 46),
+                                                   ("#12302f", "#1e4444", 92, 62)]):
+        x = -int(rng.integers(0, step))
+        while x < W:
+            w = int(rng.integers(step // 2, step))
+            h = int(rng.integers(18, 34)) + depth * 6
+            rect(img, x, top + 40 - h, w, h + 80, col)
+            rect(img, x, top + 40 - h, w, 1, lit)
+            # Doorways, dark, some with a faint glow of a portal in them.
+            if rng.random() < 0.5 and w > 10:
+                dx = x + w // 2 - 3
+                rect(img, dx, top + 40 - h + 6, 6, h - 6, "#081214")
+                if rng.random() < 0.5:
+                    blend(img, radial(dx + 3, top + 40 - h // 2, 8, squash=1.6) * 0.8, "#2a8a8a", levels=3)
+            x += w + int(rng.integers(4, 14))
+        blend(img, np.ones((H, W)) * 0.25, "#0c2224", levels=2)
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 120) / 60, 0, 1) * 0.6, "#081416", levels=4)
+    return img
+
+
+def hoard_backdrop():
+    rng = np.random.default_rng(151)
+    img = canvas(W, H, "#1a120a")
+    vgrad(img, 0, H, ["#120c08", "#1e1408", "#2a1c0c", "#1e140a"])
+    rock = noise2d(W, H, 152, 18)
+    paint(img, rock > 0.62, "#241a10")
+    paint(img, rock > 0.72, "#2c2014")
+    # Mountains of gold catching the light of a lantern, coins glinting.
+    blend(img, radial(170, 120, 140, squash=0.5) * 0.5, "#4a3010", levels=4)
+    for cx, cy, r in ((70, 160, 70), (180, 170, 90), (290, 158, 60)):
+        pile = 1 - np.abs(np.arange(W) - cx) / r
+        top = cy - np.clip(pile, 0, 1) ** 0.7 * r * 0.55
+        paint(img, column_mask(top, False), "#6a4a18")
+        paint(img, column_mask(top + 3, False), "#5a3c14")
+        edge = column_mask(top + 1, False) ^ column_mask(top, False)
+        paint(img, edge, "#b08a30")
+    for _ in range(60):
+        x, y = int(rng.integers(0, W)), int(rng.integers(110, H))
+        if (img[y, x] != hexc("#1e140a")).any():
+            img[y, x] = hexc("#e8c050" if rng.random() < 0.4 else "#a07a28")
+    # A chest and a crown on the big pile, and a lantern hanging from a rope.
+    rect(img, 166, 108, 20, 12, "#5a3418")
+    rect(img, 166, 108, 20, 3, "#7a4a24")
+    rect(img, 175, 110, 3, 4, "#d8b040")
+    rect(img, 240, 0, 1, 52, "#3a2a18")
+    blend(img, radial(240, 58, 18) * 0.9, "#c88a30", levels=3)
+    rect(img, 237, 52, 7, 9, "#d8a040")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 150) / 30, 0, 1) * 0.5, "#120c08", levels=3)
+    return img
+
+
+def crypt_backdrop():
+    rng = np.random.default_rng(161)
+    img = canvas(W, H, "#120a0e")
+    vgrad(img, 0, H, ["#0e080a", "#180c10", "#201016", "#160a0e"])
+    masonry(img, 0, H, 12, (20, 30), 162, "#1e1216", "#140a0e", "#261a1e", "#160c10")
+    # Burial niches with skulls in them, rows of them.
+    for row, y in enumerate((24, 64, 104)):
+        for x in range(8 + row * 12, W, 44):
+            rect(img, x, y, 22, 14, "#0a0608")
+            rect(img, x, y, 22, 1, "#2a1a1e")
+            if rng.random() < 0.7:
+                sx = x + int(rng.integers(3, 12))
+                rect(img, sx, y + 7, 6, 5, "#5a5048")
+                rect(img, sx + 1, y + 9, 1, 1, "#0a0608")
+                rect(img, sx + 4, y + 9, 1, 1, "#0a0608")
+                rect(img, sx + 1, y + 12, 4, 2, "#4a4038")
+    # A red glow from below, as if something waits down there.
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 100) / 80, 0, 1) * 0.55, "#5a1018", levels=4)
+    blend(img, radial(160, 190, 120, squash=0.4) * 0.6, "#8a1a1a", levels=3)
+    for x in (50, 270):
+        rect(img, x, 118, 3, 10, "#6a5a40")
+        blend(img, radial(x + 1, 114, 10) * 1.2, "#e07030", levels=3)
+        rect(img, x, 112, 3, 4, "#ffd080")
+    return img
+
+
+def manor_backdrop():
+    rng = np.random.default_rng(171)
+    img = canvas(W, H, "#14101c")
+    vgrad(img, 0, H, ["#100c18", "#16121e", "#1c1624", "#14101a"])
+    # Faded striped wallpaper with a damask dot.
+    for x in range(0, W, 12):
+        rect(img, x, 0, 6, H, "#1a1524")
+        for y in range(6 + (x // 12) % 2 * 10, H, 20):
+            img[y, min(x + 9, W - 1)] = hexc("#2a2236")
+    # Tall windows with the moon outside, and a staircase climbing into the dark.
+    for wx in (40, 230):
+        rect(img, wx - 2, 20, 44, 74, "#2a2030")
+        rect(img, wx, 22, 40, 70, "#1e2a44")
+        blend(img, radial(wx + 26, 40, 30) * 0.5, "#4a5a7a", levels=3)
+        moon = radial(wx + 26, 40, 9)
+        paint(img, moon > 0, "#c8d0e0")
+        rect(img, wx + 19, 22, 2, 70, "#2a2030")
+        rect(img, wx, 55, 40, 2, "#2a2030")
+        # Torn curtains.
+        rect(img, wx - 6, 16, 8, 84, "#3a1424")
+        rect(img, wx + 38, 16, 8, 60, "#3a1424")
+        triangle(img, wx + 38, 76, 8, 16, "#3a1424")
+    # Portraits whose eyes follow you.
+    for px in (120, 172):
+        rect(img, px, 34, 22, 28, "#5a4020")
+        rect(img, px + 2, 36, 18, 24, "#241c20")
+        rect(img, px + 7, 40, 8, 9, "#4a3a34")
+        img[44, px + 9] = img[44, px + 13] = hexc("#e04040")
+    for i in range(14):
+        rect(img, 300 - i * 8, 100 + i * 5, 30, 5, "#221a20")
+        rect(img, 300 - i * 8, 100 + i * 5, 30, 1, "#2e2428")
+    # Cobwebs in the top corners: threads fanning out, joined by sagging rings.
+    for cx in (0, W - 1):
+        sx = 1 if cx == 0 else -1
+        for i in range(18):
+            img[i, cx + sx * i] = hexc("#34303e")
+            img[min(i // 2, H - 1), cx + sx * i] = hexc("#34303e")
+            img[i, cx + sx * (i // 2)] = hexc("#34303e")
+        for r in (6, 12):
+            for i in range(r):
+                img[r - i // 2 - (i * (r - i)) // (r * 2), cx + sx * i] = hexc("#2c2836")
+    ys = np.arange(H)[:, None] * np.ones((1, W))
+    blend(img, np.clip((ys - 130) / 50, 0, 1) * 0.6, "#0c0a10", levels=4)
+    return img
+
+
 # --- tiles ------------------------------------------------------------------
 # Each painter draws one 8x8 tile from a variant index. Top tiles sit on the top
 # row of every block; fill tiles cover the rest.
@@ -873,6 +1037,89 @@ def observatory_tile(top, v):
     return t
 
 
+def warp_tile(top, v):
+    rng = np.random.default_rng(1300 + v + top * 10)
+    t = canvas(T, T, "#3a3250")
+    speckle(t, rng, "#30283f", 6)
+    speckle(t, rng, "#463c60", 3)
+    t[:, 7] = hexc("#2a2238")
+    t[7, :] = hexc("#2a2238")
+    if top:
+        t[0, :] = hexc("#7a6aa0")
+        t[1, :] = hexc("#544878")
+    if v == 1:
+        # A glowing rune.
+        t[3:6, 3] = hexc("#b088f0")
+        t[3, 3:6] = hexc("#b088f0")
+        t[5, 5] = hexc("#b088f0")
+    return t
+
+
+def labyrinth_tile(top, v):
+    rng = np.random.default_rng(1400 + v + top * 10)
+    t = canvas(T, T, "#2a5050")
+    speckle(t, rng, "#224444", 6)
+    speckle(t, rng, "#346060", 3)
+    t[0:4, 7] = hexc("#183a3a")
+    t[4:8, 3] = hexc("#183a3a")
+    t[3, :] = hexc("#183a3a")
+    t[7, :] = hexc("#183a3a")
+    if top:
+        # Ivy along the top edge.
+        t[0, :] = hexc("#4a8a4a")
+        t[1, (v * 2) % T:(v * 2) % T + 3] = hexc("#3a7040")
+    elif v == 2:
+        t[5, 0:3] = hexc("#4a8a4a")
+    return t
+
+
+def hoard_tile(top, v):
+    rng = np.random.default_rng(1500 + v + top * 10)
+    t = canvas(T, T, "#5a4430")
+    speckle(t, rng, "#4a3626", 6)
+    speckle(t, rng, "#6a5238", 3)
+    if top:
+        # Coins spilled along the top.
+        t[0:2, :] = hexc("#c89a30")
+        t[0, (v * 3) % T] = hexc("#fff0a0")
+        t[0, (v * 3 + 4) % T] = hexc("#f8d050")
+        t[2, :] = hexc("#7a5a20")
+    elif v == 1:
+        t[3:5, 2:4] = hexc("#e8c050")
+        t[3, 2] = hexc("#fff0a0")
+    elif v == 3:
+        t[5, 4:7] = hexc("#c89a30")
+    return t
+
+
+def crypt_tile(top, v):
+    t = brick_tile(top, v, "#5a4a48", "#2e2224", "#6e5e5a", "#4a3c3a", None, "#8a7a72")
+    if v == 1 and not top:
+        # A skull set into the wall.
+        t[2:5, 2:6] = hexc("#c8beb0")
+        t[3, 3] = t[3, 5] = hexc("#2e2224")
+        t[5, 3:5] = hexc("#a89e90")
+    return t
+
+
+def manor_tile(top, v):
+    rng = np.random.default_rng(1700 + v + top * 10)
+    t = canvas(T, T, "#4a3226")
+    speckle(t, rng, "#3e2a20", 5)
+    # Floorboards: long planks with dark seams.
+    t[3, :] = hexc("#2e1e16")
+    t[7, :] = hexc("#2e1e16")
+    t[0:3, (v * 3 + 2) % T] = hexc("#2e1e16")
+    t[4:7, (v * 3 + 6) % T] = hexc("#2e1e16")
+    t[1, 0:5] = hexc("#5a3e2e")
+    if top:
+        t[0, :] = hexc("#7a5a42")
+        t[1, :] = hexc("#5e4232")
+    elif v == 2:
+        t[5, 2] = hexc("#6a6a74")
+    return t
+
+
 THEMES = {
     "jungle": (jungle_backdrop, jungle_tile),
     "cave": (cave_backdrop, cave_tile),
@@ -886,6 +1133,11 @@ THEMES = {
     "frost": (frost_backdrop, frost_tile),
     "clockwork": (clockwork_backdrop, clockwork_tile),
     "observatory": (observatory_backdrop, observatory_tile),
+    "warp": (warp_backdrop, warp_tile),
+    "labyrinth": (labyrinth_backdrop, labyrinth_tile),
+    "hoard": (hoard_backdrop, hoard_tile),
+    "crypt": (crypt_backdrop, crypt_tile),
+    "manor": (manor_backdrop, manor_tile),
 }
 
 

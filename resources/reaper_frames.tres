@@ -1,0 +1,145 @@
+[gd_resource type="SpriteFrames" load_steps=19 format=3]
+
+[ext_resource type="Texture2D" path="res://art/monsters/reaper.svg" id="1"]
+
+[sub_resource type="AtlasTexture" id="idle_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 20, 26)
+
+[sub_resource type="AtlasTexture" id="idle_1"]
+atlas = ExtResource("1")
+region = Rect2(20, 0, 20, 26)
+
+[sub_resource type="AtlasTexture" id="idle_2"]
+atlas = ExtResource("1")
+region = Rect2(40, 0, 20, 26)
+
+[sub_resource type="AtlasTexture" id="idle_3"]
+atlas = ExtResource("1")
+region = Rect2(60, 0, 20, 26)
+
+[sub_resource type="AtlasTexture" id="cast_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 26, 20, 26)
+
+[sub_resource type="AtlasTexture" id="cast_1"]
+atlas = ExtResource("1")
+region = Rect2(20, 26, 20, 26)
+
+[sub_resource type="AtlasTexture" id="cast_2"]
+atlas = ExtResource("1")
+region = Rect2(40, 26, 20, 26)
+
+[sub_resource type="AtlasTexture" id="appear_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 52, 20, 26)
+
+[sub_resource type="AtlasTexture" id="appear_1"]
+atlas = ExtResource("1")
+region = Rect2(20, 52, 20, 26)
+
+[sub_resource type="AtlasTexture" id="appear_2"]
+atlas = ExtResource("1")
+region = Rect2(40, 52, 20, 26)
+
+[sub_resource type="AtlasTexture" id="appear_3"]
+atlas = ExtResource("1")
+region = Rect2(60, 52, 20, 26)
+
+[sub_resource type="AtlasTexture" id="appear_4"]
+atlas = ExtResource("1")
+region = Rect2(80, 52, 20, 26)
+
+[sub_resource type="AtlasTexture" id="vanish_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 78, 20, 26)
+
+[sub_resource type="AtlasTexture" id="vanish_1"]
+atlas = ExtResource("1")
+region = Rect2(20, 78, 20, 26)
+
+[sub_resource type="AtlasTexture" id="vanish_2"]
+atlas = ExtResource("1")
+region = Rect2(40, 78, 20, 26)
+
+[sub_resource type="AtlasTexture" id="vanish_3"]
+atlas = ExtResource("1")
+region = Rect2(60, 78, 20, 26)
+
+[sub_resource type="AtlasTexture" id="vanish_4"]
+atlas = ExtResource("1")
+region = Rect2(80, 78, 20, 26)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("idle_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("idle_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("idle_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("idle_3")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("cast_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("cast_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("cast_2")
+}],
+"loop": false,
+"name": &"cast",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("appear_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("appear_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("appear_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("appear_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("appear_4")
+}],
+"loop": false,
+"name": &"appear",
+"speed": 14.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("vanish_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("vanish_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("vanish_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("vanish_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("vanish_4")
+}],
+"loop": false,
+"name": &"vanish",
+"speed": 14.0
+}]

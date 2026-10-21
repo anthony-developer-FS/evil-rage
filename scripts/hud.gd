@@ -12,6 +12,7 @@ func _ready() -> void:
 	Game.taunted.connect(show_taunt)
 	Game.banner_shown.connect(show_banner)
 	Game.title_shown.connect(_on_title_shown)
+	Game.coins_changed.connect(_show_counters.unbind(1))
 	_on_deaths_changed(Game.total_deaths, Game.room_deaths)
 	_banner.visible = false
 
@@ -36,7 +37,15 @@ func _on_title_shown(text: String, color: Color) -> void:
 
 
 ## Also fires when a room loads, so it refreshes the taunt and clears the banner.
-func _on_deaths_changed(total: int, in_room: int) -> void:
-	_deaths.text = "Deaths: %d  (room: %d)" % [total, in_room]
+func _on_deaths_changed(_total: int, _in_room: int) -> void:
+	_show_counters()
 	_taunt.text = Game.last_taunt
 	_banner.visible = false
+
+
+## Deaths, and coins once there are any to show.
+func _show_counters() -> void:
+	_deaths.text = "Deaths: %d  (room: %d)" % [Game.total_deaths, Game.room_deaths]
+	var coins := Game.coins + Game.attempt_coins
+	if coins > 0:
+		_deaths.text += "   Coins: %d" % coins

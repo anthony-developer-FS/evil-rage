@@ -1,0 +1,157 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/labyrinth.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/portal.tscn" id="portal"]
+
+[node name="Room69" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "69. Color blind"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Ceiling" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(352, 64)
+
+[node name="Slab1" parent="." instance=ExtResource("block")]
+position = Vector2(0, 52)
+size = Vector2(320, 8)
+
+[node name="Slab2" parent="." instance=ExtResource("block")]
+position = Vector2(0, 112)
+size = Vector2(320, 8)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 172)
+size = Vector2(320, 8)
+
+[node name="Wall1" parent="." instance=ExtResource("block")]
+position = Vector2(104, 0)
+size = Vector2(8, 172)
+
+[node name="Wall2" parent="." instance=ExtResource("block")]
+position = Vector2(208, 0)
+size = Vector2(8, 172)
+
+[node name="R1C1In" parent="." instance=ExtResource("portal")]
+position = Vector2(12, 52)
+color = Color(1, 0.604, 0.227, 1)
+
+[node name="R1C2In" parent="." instance=ExtResource("portal")]
+position = Vector2(124, 52)
+color = Color(0.227, 0.784, 1, 1)
+
+[node name="R1C3Spikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(216, 44)
+size = Vector2(104, 8)
+
+[node name="R1C3Drop" type="Marker2D" parent="."]
+position = Vector2(268, 22)
+
+[node name="R2C1Spikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 104)
+size = Vector2(104, 8)
+
+[node name="R2C1Drop" type="Marker2D" parent="."]
+position = Vector2(52, 82)
+
+[node name="R2C2In" parent="." instance=ExtResource("portal")]
+position = Vector2(124, 112)
+color = Color(0.29, 0.478, 1, 1)
+
+[node name="R2C3In" parent="." instance=ExtResource("portal")]
+position = Vector2(228, 112)
+color = Color(0.227, 0.878, 0.816, 1)
+
+[node name="R3C1Spikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(0, 164)
+size = Vector2(104, 8)
+
+[node name="R3C1Drop" type="Marker2D" parent="."]
+position = Vector2(52, 142)
+
+[node name="R3C2Spikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(112, 164)
+size = Vector2(96, 8)
+
+[node name="R3C2Drop" type="Marker2D" parent="."]
+position = Vector2(160, 142)
+
+[node name="R3C3In" parent="." instance=ExtResource("portal")]
+position = Vector2(228, 172)
+color = Color(0.753, 0.753, 0.753, 1)
+
+[node name="R3C3Mid" parent="." instance=ExtResource("portal")]
+position = Vector2(268, 172)
+exit = NodePath("../R3C2Drop")
+color = Color(0.227, 0.878, 0.816, 1)
+
+[node name="R3C3Right" parent="." instance=ExtResource("portal")]
+position = Vector2(308, 172)
+exit = NodePath("../R2C3In")
+color = Color(1, 0.227, 0.227, 1)
+
+[node name="R2C3Mid" parent="." instance=ExtResource("portal")]
+position = Vector2(268, 112)
+exit = NodePath("../R2C2In")
+color = Color(1, 0.227, 0.227, 1)
+
+[node name="R2C3Right" parent="." instance=ExtResource("portal")]
+position = Vector2(308, 112)
+exit = NodePath("../R3C3In")
+color = Color(0.29, 0.478, 1, 1)
+
+[node name="R2C2Mid" parent="." instance=ExtResource("portal")]
+position = Vector2(160, 112)
+exit = NodePath("../R2C1Drop")
+color = Color(0.227, 0.784, 1, 1)
+
+[node name="R2C2Right" parent="." instance=ExtResource("portal")]
+position = Vector2(196, 112)
+exit = NodePath("../R1C2In")
+color = Color(1, 0.227, 0.227, 1)
+
+[node name="R1C2Mid" parent="." instance=ExtResource("portal")]
+position = Vector2(160, 52)
+exit = NodePath("../R1C1In")
+color = Color(1, 0.227, 0.227, 1)
+
+[node name="R1C2Right" parent="." instance=ExtResource("portal")]
+position = Vector2(196, 52)
+exit = NodePath("../R1C3Drop")
+color = Color(1, 0.604, 0.227, 1)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(228, 172)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(92, 52)
+next_room = "res://scenes/rooms/room_70.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(228, 172)

@@ -14,6 +14,16 @@ extends Node
 ## for when mirrored controls make the left key walk right.
 ## After the script ends the current direction is held until the run resolves.
 ##
+## Rooms with Death or ghosts need the player to react, as a person would:
+## ["until_cast"] keeps going until Death next lets something fly, ["until_near", px]
+## until a saw, bullet or ghost comes within px of the player, ["until_clear"] until no
+## saw or bullet is left flying, and ["tap", "left"]
+## turns the player round without walking anywhere. ["warp"] keeps going until a
+## portal moves the player, or walks that way first with ["warp", "right"].
+## ["reflex", px] makes the player hop whenever a saw or bullet comes within px,
+## whatever else the script is doing, until ["reflex", 0]. Death appears at a random spot,
+## so rooms with him are played with several seeds; every one has to pass.
+##
 ## Rooms that change after a death also get "retry_solve" and "retry_naive" runs,
 ## played as if the player had already died once in the room.
 
@@ -331,7 +341,151 @@ var runs := {
 			["jump", 1], ["right", 400]],
 		"naive": [["right", 98], ["jump", 4], ["right", 400]],
 	},
+	# The Rift Ruins: the first portals are honest. Jumping over them is what kills.
+	"room_61": {
+		"solve": [["right", 400]],
+		"naive": [["right", 100], ["jump", 60], ["right", 400]],
+	},
+	"room_62": {
+		"solve": [["right", 400]],
+		"naive": [["right", 56], ["jump", 60], ["right", 400]],
+	},
+	"room_63": {
+		"solve": [["right", 400]],
+		"naive": [["right", 196], ["jump", 60], ["right", 400]],
+	},
+	"room_64": {
+		# Hop the portal and climb the stairs. The portal leads to a door that bites.
+		"solve": [["right", 36], ["jump", 60], ["right", 92], ["jump", 60], ["right", 132], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_65": {
+		# Only the third portal goes to the vault.
+		"solve": [["right", 60], ["jump", 60], ["right", 132], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	# The Rift Labyrinth. In every cell, walk into the middle portal or jump it for
+	# the one at the end. Only one string of choices reaches the exit.
+	"room_66": {
+		"solve": [["right", 30], ["jump", 30], ["warp"], ["warp", "right"], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_67": {
+		"solve": [["warp", "right"], ["right", 246], ["jump", 30], ["warp"], ["warp", "right"], ["right", 400]],
+		"naive": [["right", 30], ["jump", 30], ["right", 400]],
+	},
+	"room_68": {
+		# Every portal wears the color of where it goes, and red ones go to the spikes.
+		"solve": [["warp", "right"], ["right", 30], ["jump", 30], ["warp"], ["warp", "right"], ["right", 246],
+			["jump", 30], ["warp"], ["warp", "right"], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_69": {
+		# Same colors as 68, all lies: the red ones are the way.
+		"solve": [["right", 246], ["jump", 30], ["warp"], ["warp", "right"], ["right", 138], ["jump", 30], ["warp"],
+			["warp", "right"], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_70": {
+		# Walking everywhere goes round in circles; jumping everywhere hits the spikes.
+		"solve": [["warp", "right"], ["right", 138], ["jump", 30], ["warp"], ["warp", "right"], ["right", 246],
+			["jump", 30], ["warp"], ["warp", "right"], ["right", 30], ["jump", 30], ["warp"], ["right", 400]],
+		"naive": [["right", 30], ["jump", 30], ["right", 400]],
+	},
+	# The Golden Hoard. The first coins are honest, and show where to jump.
+	"room_71": {
+		"solve": [["right", 112], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_72": {
+		"solve": [["right", 40], ["jump", 60], ["right", 92], ["jump", 60], ["right", 148], ["jump", 60],
+			["right", 220], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_73": {
+		"solve": [["right", 146], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_74": {
+		# The spinning coins in the bridge are just coins. Jump them.
+		"solve": [["right", 140], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_75": {
+		# Edge up to the coin under the low ceiling, back off while it blows, then
+		# hop the bomb in the bridge.
+		"solve": [["right", 118], ["left", 80], ["idle", 60], ["right", 212], ["jump", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	# The Reaper's Crypt. Death rises across the room from the player. His saws go
+	# where the player was when he threw them, so step aside each time, and never wait
+	# in one spot.
+	"room_76": {
+		"solve": [["right", 104], ["idle", 1], ["until_cast"], ["left", 80], ["idle", 1], ["until_cast"], ["right", 104],
+			["idle", 30], ["right", 136], ["idle", 230], ["right", 400]],
+		"naive": [["right", 108], ["idle", 300], ["right", 136], ["idle", 230], ["right", 400]],
+	},
+	"room_77": {
+		# His growing saws stay where the player stood. Bait them away from the lift.
+		"solve": [["idle", 1], ["until_cast"], ["right", 60], ["idle", 1], ["until_cast"], ["right", 216], ["idle", 150],
+			["right", 400]],
+		"naive": [["right", 216], ["idle", 350], ["right", 400]],
+	},
+	"room_78": {
+		# His chasing saws are faster than the player and steer, but break on the ground.
+		# Duck into each grave until one does, then go.
+		"solve": [["right", 88], ["idle", 1], ["until_cast"], ["until_clear"], ["jump", 60, "right"], ["right", 168],
+			["idle", 1], ["until_cast"], ["until_clear"], ["jump", 60, "right"], ["right", 240], ["idle", 1], ["until_cast"],
+			["until_clear"], ["jump", 60, "right"], ["right", 400]],
+		"naive": [["right", 72], ["jump", 30], ["right", 152], ["jump", 30], ["right", 224], ["jump", 30], ["right", 400]],
+	},
+	"room_79": {
+		# Hop the bullets as they come.
+		"solve": [["reflex", 48], ["right", 112], ["jump", 60], ["right", 400]],
+		"naive": [["right", 112], ["jump", 60], ["right", 400]],
+	},
+	"room_80": {
+		# Duck each saw and each bullet in a grave, but not the last grave.
+		"solve": [["right", 104], ["idle", 1], ["until_cast"], ["until_clear"], ["until_cast"], ["until_clear"],
+			["jump", 60, "right"], ["right", 184], ["idle", 1], ["until_cast"], ["until_clear"], ["until_cast"],
+			["until_clear"], ["jump", 60, "right"], ["right", 236], ["jump", 60], ["right", 400]],
+		"naive": [["right", 88], ["jump", 30], ["right", 168], ["jump", 30], ["right", 240], ["jump", 30], ["right", 400]],
+	},
+	# The Haunted Manor. Ghosts only come while the player looks away from them.
+	"room_81": {
+		# Face the ghost while the ferry comes.
+		"solve": [["right", 104], ["tap", "left"], ["idle", 470], ["right", 128], ["idle", 200], ["right", 400]],
+		"naive": [["right", 104], ["idle", 470], ["right", 128], ["idle", 200], ["right", 400]],
+	},
+	"room_82": {
+		# One on each side: watch one, then the other, until the lift goes.
+		"solve": [["idle", 120], ["tap", "left"], ["idle", 400], ["right", 400]],
+		"naive": [["idle", 520], ["right", 400]],
+	},
+	"room_83": {
+		# The coin over the bridge is a bomb. Set it off and back away, which faces
+		# the ghost, then cross once it has gone.
+		"solve": [["right", 146], ["left", 110], ["idle", 60], ["right", 400]],
+		"naive": [["right", 400]],
+	},
+	"room_84": {
+		# Face the ghost and hop his bullets while the ferry comes.
+		"solve": [["reflex", 30], ["right", 104], ["tap", "left"], ["idle", 470], ["right", 128], ["idle", 200],
+			["reflex", 56], ["right", 400]],
+		"naive": [["reflex", 30], ["right", 104], ["idle", 470], ["right", 128], ["idle", 200], ["right", 400]],
+	},
+	"room_85": {
+		# Jump the first portal, which only goes back. Over the wall, duck each saw in a
+		# grave, facing back the way you came for the ghost.
+		"solve": [["right", 70], ["jump", 60], ["warp"], ["right", 208], ["idle", 1], ["tap", "left"], ["until_cast"],
+			["until_clear"], ["jump", 60, "right"], ["right", 256], ["idle", 1], ["tap", "left"], ["until_cast"],
+			["until_clear"], ["jump", 60, "right"], ["right", 400]],
+		"naive": [["right", 400]],
+	},
 }
+
+## Seeds for rooms where Death picks his spot at random.
+const SEEDS := [1, 2, 3, 4, 5]
 
 var _failures := 0
 
@@ -341,15 +495,19 @@ func _ready() -> void:
 	for room_name in runs:
 		if not only.is_empty() and not room_name in only:
 			continue
+		var seeds := SEEDS if _has_reaper(room_name) else [0]
 		for kind: String in runs[room_name]:
 			if OS.get_environment("LEVEL_KIND") not in ["", kind, kind.trim_prefix("retry_")]:
 				continue
 			var deaths := 1 if kind.begins_with("retry_") else 0
-			var result: String = await _play(room_name, runs[room_name][kind], deaths)
-			var ok: bool = (result == "goal") == kind.ends_with("solve")
-			print("%s  %s %s -> %s" % ["ok  " if ok else "FAIL", room_name, kind, result])
-			if not ok:
-				_failures += 1
+			for s: int in seeds:
+				seed(s)
+				var result: String = await _play(room_name, runs[room_name][kind], deaths)
+				var ok: bool = (result == "goal") == kind.ends_with("solve")
+				var label := kind if seeds.size() == 1 else "%s (seed %d)" % [kind, s]
+				print("%s  %s %s -> %s" % ["ok  " if ok else "FAIL", room_name, label, result])
+				if not ok:
+					_failures += 1
 	print("RESULT: %s" % ("PASS" if _failures == 0 else "FAIL (%d)" % _failures))
 	get_tree().quit(0 if _failures == 0 else 1)
 
@@ -369,11 +527,36 @@ func _play(room_name: String, script: Array, deaths := 0) -> String:
 	room.player.died.connect(func() -> void: state.result = "dead")
 	room.get_node("Goal").reached.connect(func() -> void: state.result = "goal")
 	# Set LEVEL_TRACE=1 to print the player's path while writing a run.
+	var start_frame := Engine.get_physics_frames()
 	var trace := func() -> void:
 		if Engine.get_physics_frames() % 6 == 0 and state.result == "":
-			print("      ", room.player.global_position.round(), " v", room.player.velocity.round())
+			var t := (Engine.get_physics_frames() - start_frame) / 120.0
+			var line := "      %5.2fs %s v%s" % [t, room.player.global_position.round(), room.player.velocity.round()]
+			for node in room.get_children():
+				if node is Saw or node is Bullet or node is Ghost or node is Reaper:
+					line += "  %s%s" % [node.get_class() if node.get_script() == null else node.get_script().get_global_name(), node.global_position.round()]
+			print(line)
 	if OS.get_environment("LEVEL_TRACE") != "":
 		get_tree().physics_frame.connect(trace)
+
+	var warps := [0]
+	room.player.teleported.connect(func() -> void: warps[0] += 1)
+	var casts := [0]
+	for node in room.get_children():
+		if node is Reaper:
+			node.cast.connect(func(_what: StringName) -> void: casts[0] += 1)
+
+	# Reflex hops: [reach in px, frames left holding jump].
+	var reflex := [0.0, 0]
+	var reflexes := func() -> void:
+		if reflex[1] > 0:
+			reflex[1] -= 1
+			if reflex[1] == 0:
+				Input.action_release("jump")
+		elif reflex[0] > 0.0 and room.player.is_on_floor() and _nearest_threat(room, false) < reflex[0]:
+			Input.action_press("jump")
+			reflex[1] = 20
+	get_tree().physics_frame.connect(reflexes)
 
 	var dir := ""
 	for cmd in script:
@@ -405,6 +588,37 @@ func _play(room_name: String, script: Array, deaths := 0) -> String:
 				Input.action_release("jump")
 			"hold":
 				await _frames(cmd[1], state)
+			"warp":
+				if cmd.size() > 1:
+					_set_dir(cmd[1])
+					dir = cmd[1]
+				var before: int = warps[0]
+				for i in 600:
+					if warps[0] > before or state.result != "":
+						break
+					await get_tree().physics_frame
+			"until_cast":
+				var before: int = casts[0]
+				for i in 1200:
+					if casts[0] > before or state.result != "":
+						break
+					await get_tree().physics_frame
+			"until_clear":
+				for i in 1200:
+					if _nearest_threat(room, false) == INF or state.result != "":
+						break
+					await get_tree().physics_frame
+			"until_near":
+				for i in 1200:
+					if _nearest_threat(room) < cmd[1] or state.result != "":
+						break
+					await get_tree().physics_frame
+			"reflex":
+				reflex[0] = float(cmd[1])
+			"tap":
+				_set_dir(cmd[1])
+				await _frames(1, state)
+				_set_dir(dir)
 			"idle":
 				_set_dir("")
 				dir = ""
@@ -414,11 +628,29 @@ func _play(room_name: String, script: Array, deaths := 0) -> String:
 		print("      timed out with player at ", room.player.global_position, " goal at ", room.get_node("Goal").global_position)
 	if get_tree().physics_frame.is_connected(trace):
 		get_tree().physics_frame.disconnect(trace)
+	get_tree().physics_frame.disconnect(reflexes)
 	_set_dir("")
 	Input.action_release("jump")
 	room.queue_free()
 	await get_tree().physics_frame
 	return state.result if state.result != "" else "timeout"
+
+
+func _has_reaper(room_name: String) -> bool:
+	var room: Node = load("res://scenes/rooms/%s.tscn" % room_name).instantiate()
+	var found := room.get_children().any(func(node: Node) -> bool: return node is Reaper)
+	room.free()
+	return found
+
+
+## How far the closest saw, bullet or awake ghost is from the middle of the player.
+func _nearest_threat(room: Room, ghosts := true) -> float:
+	var me := room.player.global_position + Vector2(0, -7)
+	var best := INF
+	for node in room.get_children():
+		if node is Saw or node is Bullet or (ghosts and node is Ghost and node.awake):
+			best = minf(best, me.distance_to(node.global_position))
+	return best
 
 
 func _set_dir(dir: String) -> void:

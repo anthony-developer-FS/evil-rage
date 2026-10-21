@@ -1,0 +1,103 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/hoard.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/coin.tscn" id="coin"]
+
+[node name="Room75" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "75. Hoard finale"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="FloorA" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(176, 20)
+
+[node name="FloorB" parent="." instance=ExtResource("block")]
+position = Vector2(272, 160)
+size = Vector2(48, 20)
+
+[node name="LowCeiling" parent="." instance=ExtResource("block")]
+position = Vector2(96, -64)
+size = Vector2(80, 206)
+
+[node name="Coin1" parent="." instance=ExtResource("coin")]
+position = Vector2(40, 152)
+
+[node name="Coin2" parent="." instance=ExtResource("coin")]
+position = Vector2(56, 152)
+
+[node name="Coin3" parent="." instance=ExtResource("coin")]
+position = Vector2(72, 152)
+
+[node name="Bait" parent="." instance=ExtResource("coin")]
+position = Vector2(150, 152)
+kind = 1
+fuse = 0.3
+approach = 30.0
+
+[node name="Bridge1" parent="." instance=ExtResource("coin")]
+position = Vector2(182, 167)
+kind = 2
+
+[node name="Bridge2" parent="." instance=ExtResource("coin")]
+position = Vector2(194, 167)
+kind = 2
+
+[node name="Bridge3" parent="." instance=ExtResource("coin")]
+position = Vector2(206, 167)
+kind = 2
+
+[node name="Bridge4" parent="." instance=ExtResource("coin")]
+position = Vector2(218, 167)
+kind = 2
+
+[node name="Bridge5" parent="." instance=ExtResource("coin")]
+position = Vector2(230, 167)
+kind = 1
+
+[node name="Bridge6" parent="." instance=ExtResource("coin")]
+position = Vector2(242, 167)
+kind = 2
+
+[node name="Bridge7" parent="." instance=ExtResource("coin")]
+position = Vector2(254, 167)
+kind = 2
+
+[node name="Bridge8" parent="." instance=ExtResource("coin")]
+position = Vector2(266, 167)
+kind = 2
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(16, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(300, 160)
+next_room = "res://scenes/rooms/room_76.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(16, 160)

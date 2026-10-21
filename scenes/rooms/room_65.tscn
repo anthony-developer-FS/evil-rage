@@ -1,0 +1,82 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room.gd" id="room"]
+[ext_resource type="Resource" path="res://resources/themes/warp.tres" id="theme"]
+[ext_resource type="Script" path="res://scripts/backdrop.gd" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/objects/block.tscn" id="block"]
+[ext_resource type="PackedScene" path="res://scenes/objects/goal.tscn" id="goal"]
+[ext_resource type="PackedScene" path="res://scenes/objects/player.tscn" id="player"]
+[ext_resource type="PackedScene" path="res://scenes/objects/hazard.tscn" id="hazard"]
+[ext_resource type="PackedScene" path="res://scenes/trolls/portal.tscn" id="portal"]
+
+[node name="Room65" type="Node2D"]
+script = ExtResource("room")
+world_theme = ExtResource("theme")
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("backdrop")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 160.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "65. Pick a door"
+
+[node name="WallLeft" parent="." instance=ExtResource("block")]
+position = Vector2(-16, -64)
+size = Vector2(16, 308)
+
+[node name="WallRight" parent="." instance=ExtResource("block")]
+position = Vector2(320, -64)
+size = Vector2(16, 308)
+
+[node name="Floor" parent="." instance=ExtResource("block")]
+position = Vector2(0, 160)
+size = Vector2(320, 20)
+
+[node name="FloorSpikes" parent="." instance=ExtResource("hazard")]
+position = Vector2(240, 152)
+size = Vector2(80, 8)
+
+[node name="VaultFloor" parent="." instance=ExtResource("block")]
+position = Vector2(232, 64)
+size = Vector2(88, 8)
+
+[node name="VaultWall" parent="." instance=ExtResource("block")]
+position = Vector2(232, 16)
+size = Vector2(8, 48)
+
+[node name="Portal1" parent="." instance=ExtResource("portal")]
+position = Vector2(80, 160)
+exit = NodePath("../Drop")
+
+[node name="Drop" type="Marker2D" parent="."]
+position = Vector2(284, 120)
+
+[node name="Portal2" parent="." instance=ExtResource("portal")]
+position = Vector2(152, 160)
+exit = NodePath("../Home")
+
+[node name="Home" parent="." instance=ExtResource("portal")]
+position = Vector2(16, 160)
+
+[node name="Portal3" parent="." instance=ExtResource("portal")]
+position = Vector2(224, 160)
+exit = NodePath("../Vault")
+
+[node name="Vault" parent="." instance=ExtResource("portal")]
+position = Vector2(252, 64)
+
+[node name="Spawn" type="Marker2D" parent="."]
+position = Vector2(24, 160)
+
+[node name="Goal" parent="." instance=ExtResource("goal")]
+position = Vector2(304, 64)
+next_room = "res://scenes/rooms/room_66.tscn"
+
+[node name="Player" parent="." instance=ExtResource("player")]
+position = Vector2(24, 160)

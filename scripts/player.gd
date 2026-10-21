@@ -14,6 +14,8 @@ signal gravity_flipped
 signal controls_flipped
 ## Fires when a shield from a treasure chest takes a hit instead of the player.
 signal shield_broken
+## Fires when a portal moves the player.
+signal teleported
 
 @export var tuning: MovementTuning = preload("res://resources/default_tuning.tres")
 
@@ -148,6 +150,20 @@ func shove(push: Vector2, seconds := 0.3) -> void:
 
 func is_invulnerable() -> bool:
 	return _invulnerable_timer > 0.0
+
+
+## 1 while looking right, -1 while looking left. Ghosts only move while the
+## player looks the other way.
+func facing() -> float:
+	return -1.0 if _sprite.flip_h else 1.0
+
+
+## Moves the player somewhere else at once, keeping their speed, as a portal does.
+## Coyote time is used up, so stepping out of a portal over a pit is not a free jump.
+func teleport(to: Vector2) -> void:
+	global_position = to
+	_coyote_timer = 0.0
+	teleported.emit()
 
 
 func set_controls_reversed(reversed: bool) -> void:
